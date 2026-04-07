@@ -142,6 +142,7 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
         };
       } catch {
         setWebglOk(false);
+        return undefined;
       }
     }
 
