@@ -95,7 +95,7 @@ Frontend rewrites `/api/*` to the API service via `vercel.json`.
 GitHub Actions workflow in `.github/workflows/ci.yml` runs on pull requests and pushes to `main`:
 
 1. `pnpm install --frozen-lockfile`
-2. `pnpm exec tsc -b lib/db lib/api-zod --force` (build referenced declaration outputs)
+2. `pnpm exec tsc -b lib/db lib/api-zod lib/api-client-react --force` (build referenced declaration outputs)
 3. `pnpm --filter @workspace/api-server run typecheck`
 4. `pnpm --filter @workspace/api-server run build`
 5. `pnpm --filter @workspace/portfolio run typecheck`

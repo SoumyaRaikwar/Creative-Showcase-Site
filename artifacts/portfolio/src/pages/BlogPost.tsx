@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { useGetBlogPost } from "@workspace/api-client-react";
+import type { BlogPost as ApiBlogPost } from "@workspace/api-client-react";
 import ReactMarkdown from "react-markdown";
 
 interface Props {
@@ -8,9 +9,10 @@ interface Props {
 }
 
 export default function BlogPost({ slug }: Props) {
-  const { data: post, isLoading, isError } = useGetBlogPost(slug, {
+  const { data: postData, isLoading, isError } = useGetBlogPost(slug, {
     query: { queryKey: ["blog", slug] },
   });
+  const post: ApiBlogPost | undefined = postData;
 
   if (isLoading) {
     return (
