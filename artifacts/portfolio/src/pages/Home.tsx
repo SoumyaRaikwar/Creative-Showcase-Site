@@ -224,26 +224,6 @@ function HeroSection() {
           </div>
         </motion.div>
 
-        {/* Stats */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6, duration: 0.8 }}
-          className="absolute bottom-12 left-6 right-6 flex gap-10 max-w-sm"
-        >
-          {[
-            { value: "2", label: "CNCF Projects" },
-            { value: "4", label: "PRs Merged" },
-            { value: "3+", label: "Years Building" },
-          ].map((s) => (
-            <div key={s.label}>
-              <div className="font-display text-2xl font-semibold text-gradient-amber">{s.value}</div>
-              <div className="text-xs uppercase tracking-widest font-body mt-0.5" style={{ color: "hsl(var(--muted-foreground))" }}>
-                {s.label}
-              </div>
-            </div>
-          ))}
-        </motion.div>
       </div>
 
       {/* Scroll indicator */}
