@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { useListBlogPosts, useGetBlogTags } from "@workspace/api-client-react";
+import type { BlogPost } from "@workspace/api-client-react";
 
 export default function BlogList() {
   const [selectedTag, setSelectedTag] = useState<string | undefined>(undefined);
@@ -10,9 +11,9 @@ export default function BlogList() {
   const { data, isLoading } = useListBlogPosts({ page, limit: 9, tag: selectedTag });
   const { data: tagsData } = useGetBlogTags();
 
-  const posts = data?.posts ?? [];
+  const posts: BlogPost[] = data?.posts ?? [];
   const totalPages = data?.totalPages ?? 1;
-  const tags = tagsData?.tags ?? [];
+  const tags: string[] = tagsData?.tags ?? [];
 
   return (
     <div style={{ background: "hsl(var(--background))", minHeight: "100vh" }}>
