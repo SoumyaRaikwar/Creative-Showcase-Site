@@ -36,8 +36,13 @@ export default function Navbar() {
     >
       <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <Link href="/">
-          <span className="font-display font-semibold text-lg tracking-tight cursor-pointer" style={{ color: "hsl(var(--foreground))" }}>
-            SR<span style={{ color: "hsl(var(--primary))" }}>.</span>
+          <span className="cursor-pointer inline-flex items-center" aria-label="Soumya Raikwar home">
+            <img
+              src="/sr-logo-256.png"
+              alt="SR logo"
+              className="h-10 w-10 rounded-full object-cover"
+              style={{ border: "1px solid hsl(var(--border))" }}
+            />
           </span>
         </Link>
 
