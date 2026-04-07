@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "MVDHItpoDdfNWeTwSsJLl"
+uri = "file://portfolio-export.tar.gz"
+type = "unspecified"
+title = "Portfolio — Full Source Code"
