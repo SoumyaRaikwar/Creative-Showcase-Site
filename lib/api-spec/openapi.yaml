@@ -3,13 +3,15 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: API specification for Soumya Raikwar portfolio
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: blog
+    description: Blog post operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,156 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /blog:
+    get:
+      operationId: listBlogPosts
+      tags: [blog]
+      summary: List all blog posts
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: tag
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of blog posts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPostList"
+    post:
+      operationId: createBlogPost
+      tags: [blog]
+      summary: Create a blog post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBlogPostBody"
+      responses:
+        "201":
+          description: Created blog post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+
+  /blog/{slug}:
+    get:
+      operationId: getBlogPost
+      tags: [blog]
+      summary: Get a blog post by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Blog post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+        "404":
+          description: Not found
+    put:
+      operationId: updateBlogPost
+      tags: [blog]
+      summary: Update a blog post
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBlogPostBody"
+      responses:
+        "200":
+          description: Updated blog post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+    delete:
+      operationId: deleteBlogPost
+      tags: [blog]
+      summary: Delete a blog post
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /blog/meta/tags:
+    get:
+      operationId: getBlogTags
+      tags: [blog]
+      summary: Get all unique tags used in blog posts
+      responses:
+        "200":
+          description: List of tags
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagList"
+
+  /contact:
+    post:
+      operationId: sendMessage
+      tags: [contact]
+      summary: Send a contact message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageBody"
+      responses:
+        "201":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageSentResponse"
+
+  /blog/meta/recent:
+    get:
+      operationId: getRecentBlogPosts
+      tags: [blog]
+      summary: Get the 3 most recent blog posts
+      responses:
+        "200":
+          description: Recent blog posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BlogPost"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +186,150 @@ components:
       required:
         - status
 
+    BlogPost:
+      type: object
+      properties:
+        id:
+          type: integer
+        slug:
+          type: string
+        title:
+          type: string
+        excerpt:
+          type: string
+        content:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        coverImage:
+          type: string
+          nullable: true
+        publishedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - slug
+        - title
+        - excerpt
+        - content
+        - tags
+        - publishedAt
+        - createdAt
+        - updatedAt
+
+    BlogPostList:
+      type: object
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: "#/components/schemas/BlogPost"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        totalPages:
+          type: integer
+      required:
+        - posts
+        - total
+        - page
+        - limit
+        - totalPages
+
+    CreateBlogPostBody:
+      type: object
+      properties:
+        slug:
+          type: string
+        title:
+          type: string
+        excerpt:
+          type: string
+        content:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        coverImage:
+          type: string
+          nullable: true
+        publishedAt:
+          type: string
+          format: date-time
+      required:
+        - slug
+        - title
+        - excerpt
+        - content
+        - tags
+
+    UpdateBlogPostBody:
+      type: object
+      properties:
+        title:
+          type: string
+        excerpt:
+          type: string
+        content:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        coverImage:
+          type: string
+          nullable: true
+        publishedAt:
+          type: string
+          format: date-time
+
+    SendMessageBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        subject:
+          type: string
+        body:
+          type: string
+      required:
+        - name
+        - email
+        - subject
+        - body
+
+    MessageSentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+        - message
+
+    TagList:
+      type: object
+      properties:
+        tags:
+          type: array
+          items:
+            type: string
+      required:
+        - tags
