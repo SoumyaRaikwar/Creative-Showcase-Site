@@ -25,6 +25,11 @@ export default function Navbar() {
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
+  const handleLogoClick = () => {
+    setMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <header
       className="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
@@ -35,7 +40,7 @@ export default function Navbar() {
       }}
     >
       <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link href="/">
+        <Link href="/" onClick={handleLogoClick}>
           <span className="cursor-pointer inline-flex items-center" aria-label="Soumya Raikwar home">
             <img
               src="/sr-logo-256.png"
