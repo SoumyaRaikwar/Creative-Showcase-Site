@@ -557,7 +557,7 @@ function ContactSection() {
             {[
               { label: "Email", value: "somuraik@gmail.com", href: "mailto:somuraik@gmail.com" },
               { label: "GitHub", value: "github.com/SoumyaRaikwar", href: "https://github.com/SoumyaRaikwar" },
-              { label: "LinkedIn", value: "linkedin.com/in/soumya-raikwar", href: "https://linkedin.com/in/soumya-raikwar" },
+              { label: "LinkedIn", value: "linkedin.com/in/soumya-raikwar-5660772a3", href: "https://www.linkedin.com/in/soumya-raikwar-5660772a3/" },
               { label: "Location", value: "Bhopal, India", href: null },
             ].map((link) => (
               <div key={link.label} className="flex items-center gap-4">
@@ -695,7 +695,7 @@ function Footer() {
         <div className="flex items-center gap-5">
           {[
             { label: "GitHub", href: "https://github.com/SoumyaRaikwar" },
-            { label: "LinkedIn", href: "https://linkedin.com/in/soumya-raikwar" },
+            { label: "LinkedIn", href: "https://www.linkedin.com/in/soumya-raikwar-5660772a3/" },
             { label: "Email", href: "mailto:somuraik@gmail.com" },
           ].map((l) => (
             <a
