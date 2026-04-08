@@ -17,7 +17,7 @@ function Particle({ x, y, size, opacity, duration }: {
         top: `${y}%`,
         width: size,
         height: size,
-        background: "hsl(38 85% 52%)",
+        background: "hsl(33 90% 60%)",
         opacity,
       }}
       animate={{ y: [0, -12, 0], opacity: [opacity, opacity * 0.4, opacity] }}
@@ -26,7 +26,47 @@ function Particle({ x, y, size, opacity, duration }: {
   );
 }
 
-function createMarsTexture(THREE: any) {
+const MARS_TEXTURES = {
+  albedo: "/textures/mars/nasa_mars_albedo.jpg",
+};
+
+function loadTexture(THREE: any, path: string) {
+  return new Promise<any>((resolve, reject) => {
+    const loader = new THREE.TextureLoader();
+    loader.load(path, resolve, undefined, reject);
+  });
+}
+
+function createBumpTextureFromColor(THREE: any, colorTexture: any, anisotropy: number) {
+  const image = colorTexture.image as HTMLImageElement | HTMLCanvasElement;
+  const canvas = document.createElement("canvas");
+  canvas.width = image.width;
+  canvas.height = image.height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+
+  ctx.drawImage(image, 0, 0);
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const lum = (data[i] * 0.299) + (data[i + 1] * 0.587) + (data[i + 2] * 0.114);
+    const boosted = Math.max(0, Math.min(255, (lum - 128) * 1.35 + 128));
+    data[i] = boosted;
+    data[i + 1] = boosted;
+    data[i + 2] = boosted;
+    data[i + 3] = 255;
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+
+  const bump = new THREE.CanvasTexture(canvas);
+  bump.anisotropy = anisotropy;
+  bump.needsUpdate = true;
+  return bump;
+}
+
+function createDustTexture(THREE: any, anisotropy: number) {
   const size = 1024;
   const canvas = document.createElement("canvas");
   canvas.width = size;
@@ -34,57 +74,39 @@ function createMarsTexture(THREE: any) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
 
-  const gradient = ctx.createRadialGradient(
-    size * 0.35,
-    size * 0.3,
-    size * 0.12,
-    size * 0.5,
-    size * 0.5,
-    size * 0.68,
-  );
-  gradient.addColorStop(0, "#d98a49");
-  gradient.addColorStop(0.38, "#b45d30");
-  gradient.addColorStop(1, "#6f2e1c");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, size, size);
+  ctx.clearRect(0, 0, size, size);
 
-  for (let i = 0; i < 160; i += 1) {
+  for (let i = 0; i < 120; i += 1) {
     const x = Math.random() * size;
     const y = Math.random() * size;
-    const r = 24 + Math.random() * 140;
+    const r = 16 + Math.random() * 130;
     const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-    const dark = Math.random() > 0.5;
-    if (dark) {
-      g.addColorStop(0, "rgba(90, 34, 21, 0.35)");
-      g.addColorStop(1, "rgba(90, 34, 21, 0)");
-    } else {
-      g.addColorStop(0, "rgba(238, 165, 94, 0.25)");
-      g.addColorStop(1, "rgba(238, 165, 94, 0)");
-    }
+    g.addColorStop(0, "rgba(255, 186, 118, 0.25)");
+    g.addColorStop(1, "rgba(255, 186, 118, 0)");
     ctx.fillStyle = g;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  for (let i = 0; i < 46; i += 1) {
-    const x = Math.random() * size;
-    const y = Math.random() * size;
-    const r = 4 + Math.random() * 16;
-    ctx.strokeStyle = "rgba(255, 215, 145, 0.15)";
-    ctx.lineWidth = 1 + Math.random() * 1.8;
+  for (let i = 0; i < 38; i += 1) {
+    ctx.strokeStyle = "rgba(255, 208, 160, 0.18)";
+    ctx.lineWidth = 1 + Math.random() * 2;
     ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.ellipse(
+      Math.random() * size,
+      Math.random() * size,
+      70 + Math.random() * 280,
+      12 + Math.random() * 48,
+      Math.random() * Math.PI,
+      0,
+      Math.PI * 2,
+    );
     ctx.stroke();
-    ctx.fillStyle = "rgba(76, 28, 16, 0.18)";
-    ctx.beginPath();
-    ctx.arc(x, y, r * 0.72, 0, Math.PI * 2);
-    ctx.fill();
   }
 
   const texture = new THREE.CanvasTexture(canvas);
-  texture.anisotropy = 8;
-  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = anisotropy;
   texture.needsUpdate = true;
   return texture;
 }
@@ -126,76 +148,97 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
         renderer.setSize(w, h);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
         renderer.setClearColor(0x000000, 0);
-        if (cancelled) { renderer.dispose(); return; }
+        if (cancelled) {
+          renderer.dispose();
+          return;
+        }
         mountRef.current!.appendChild(renderer.domElement);
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.34);
-        scene.add(ambientLight);
-        const pointLight = new THREE.PointLight(0xffb069, 1.6);
-        pointLight.position.set(4.8, 3.8, 5.8);
-        scene.add(pointLight);
-        const pointLight2 = new THREE.PointLight(0x8b3a1a, 0.5);
-        pointLight2.position.set(-4.2, -2.5, -2.8);
-        scene.add(pointLight2);
+        const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+        const anisotropy = Math.min(maxAnisotropy, 8);
 
-        const marsTexture = createMarsTexture(THREE);
-        const planetGeo = new THREE.SphereGeometry(1.28, 96, 96);
+        const marsAlbedo = await loadTexture(THREE, MARS_TEXTURES.albedo);
+        if (cancelled) {
+          marsAlbedo.dispose();
+          renderer.dispose();
+          return;
+        }
+
+        marsAlbedo.colorSpace = THREE.SRGBColorSpace;
+        marsAlbedo.anisotropy = anisotropy;
+
+        const marsBump = createBumpTextureFromColor(THREE, marsAlbedo, anisotropy);
+        const dustAlpha = createDustTexture(THREE, anisotropy);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambientLight);
+
+        const sunLight = new THREE.DirectionalLight(0xffd9b6, 1.35);
+        sunLight.position.set(5.2, 3.2, 5.7);
+        scene.add(sunLight);
+
+        const bounceLight = new THREE.DirectionalLight(0x9a4e28, 0.42);
+        bounceLight.position.set(-4.6, -1.6, -3.5);
+        scene.add(bounceLight);
+
+        const planetGeo = new THREE.SphereGeometry(1.25, 96, 96);
         const planetMat = new THREE.MeshStandardMaterial({
-          map: marsTexture,
-          color: 0xffffff,
-          roughness: 0.92,
-          metalness: 0.03,
-          emissive: 0x2c1108,
-          emissiveIntensity: 0.16,
+          map: marsAlbedo,
+          bumpMap: marsBump,
+          bumpScale: 0.06,
+          roughness: 0.9,
+          metalness: 0.02,
+          emissive: 0x34170b,
+          emissiveIntensity: 0.14,
         });
         const planet = new THREE.Mesh(planetGeo, planetMat);
         scene.add(planet);
 
-        const atmosphereGeo = new THREE.SphereGeometry(1.35, 64, 64);
-        const atmosphereMat = new THREE.MeshBasicMaterial({
-          color: 0xf0a65b,
+        const dustGeo = new THREE.SphereGeometry(1.295, 96, 96);
+        const dustMat = new THREE.MeshPhongMaterial({
+          map: dustAlpha,
+          alphaMap: dustAlpha,
+          color: 0xf1ac70,
           transparent: true,
-          opacity: 0.1,
+          opacity: 0.18,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+          side: THREE.DoubleSide,
+        });
+        const dustLayer = new THREE.Mesh(dustGeo, dustMat);
+        scene.add(dustLayer);
+
+        const atmosphereGeo = new THREE.SphereGeometry(1.34, 64, 64);
+        const atmosphereMat = new THREE.MeshBasicMaterial({
+          color: 0xea9e61,
+          transparent: true,
+          opacity: 0.13,
           side: THREE.BackSide,
         });
         const atmosphere = new THREE.Mesh(atmosphereGeo, atmosphereMat);
         scene.add(atmosphere);
 
-        const orbitRingGeo = new THREE.TorusGeometry(1.72, 0.01, 12, 220);
-        const orbitRingMat = new THREE.MeshBasicMaterial({
-          color: 0xe09d4d,
-          transparent: true,
-          opacity: 0.18,
+        const phobosGeo = new THREE.SphereGeometry(0.05, 18, 18);
+        const phobosMat = new THREE.MeshStandardMaterial({
+          color: 0x9f8062,
+          roughness: 0.92,
+          metalness: 0.01,
         });
-        const orbitRing = new THREE.Mesh(orbitRingGeo, orbitRingMat);
-        orbitRing.rotation.x = Math.PI * 0.45;
-        orbitRing.rotation.y = Math.PI * 0.2;
-        scene.add(orbitRing);
+        const phobos = new THREE.Mesh(phobosGeo, phobosMat);
+        scene.add(phobos);
 
-        const orbitRing2 = new THREE.Mesh(
-          new THREE.TorusGeometry(2.02, 0.008, 10, 180),
-          new THREE.MeshBasicMaterial({
-            color: 0xc67d38,
-            transparent: true,
-            opacity: 0.12,
-          }),
-        );
-        orbitRing2.rotation.x = Math.PI * 0.58;
-        orbitRing2.rotation.y = -Math.PI * 0.12;
-        scene.add(orbitRing2);
-
-        const moonGeo = new THREE.SphereGeometry(0.095, 20, 20);
-        const moonMat = new THREE.MeshStandardMaterial({
-          color: 0xc88b54,
-          roughness: 0.88,
-          metalness: 0.02,
+        const deimosGeo = new THREE.SphereGeometry(0.032, 14, 14);
+        const deimosMat = new THREE.MeshStandardMaterial({
+          color: 0x8d725f,
+          roughness: 0.94,
+          metalness: 0.01,
         });
-        const moon = new THREE.Mesh(moonGeo, moonMat);
-        scene.add(moon);
+        const deimos = new THREE.Mesh(deimosGeo, deimosMat);
+        scene.add(deimos);
 
         const count = 1800;
         const positions = new Float32Array(count * 3);
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < count; i += 1) {
           positions[i * 3] = (Math.random() - 0.5) * 18;
           positions[i * 3 + 1] = (Math.random() - 0.5) * 18;
           positions[i * 3 + 2] = (Math.random() - 0.5) * 18;
@@ -203,11 +246,11 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
         const ptGeo = new THREE.BufferGeometry();
         ptGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
         const ptMat = new THREE.PointsMaterial({
-          color: 0xd38b42,
-          size: 0.022,
+          color: 0xe8a663,
+          size: 0.02,
           sizeAttenuation: true,
           transparent: true,
-          opacity: 0.5,
+          opacity: 0.45,
           depthWrite: false,
         });
         const points = new THREE.Points(ptGeo, ptMat);
@@ -216,30 +259,39 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
         const animate = (t: number) => {
           if (cancelled) return;
           animFrameRef.current = requestAnimationFrame(animate);
+
           const time = t / 1000;
           const mx = mouseRef.current.x;
           const my = mouseRef.current.y;
 
-          planet.rotation.y = time * 0.12 + mx * 0.18;
-          planet.rotation.x = my * 0.08 + Math.sin(time * 0.25) * 0.02;
-          planet.position.y = Math.sin(time * 0.45) * 0.08;
+          planet.rotation.y = time * 0.1 + mx * 0.18;
+          planet.rotation.x = my * 0.07 + Math.sin(time * 0.24) * 0.015;
+          planet.position.y = Math.sin(time * 0.42) * 0.065;
 
-          atmosphere.rotation.y = planet.rotation.y * 1.04;
+          dustLayer.rotation.y = planet.rotation.y * 1.26 + time * 0.06;
+          dustLayer.rotation.x = planet.rotation.x * 1.04;
+          dustLayer.position.y = planet.position.y;
+
+          atmosphere.rotation.y = planet.rotation.y * 1.05;
           atmosphere.rotation.x = planet.rotation.x * 1.02;
           atmosphere.position.y = planet.position.y;
 
-          orbitRing.rotation.z = time * 0.04;
-          orbitRing2.rotation.z = -time * 0.03;
-
-          const moonAngle = time * 0.42;
-          moon.position.set(
-            Math.cos(moonAngle) * 1.92,
-            Math.sin(moonAngle * 1.4) * 0.24,
-            Math.sin(moonAngle) * 0.62,
+          const phobosAngle = time * 0.72;
+          phobos.position.set(
+            Math.cos(phobosAngle) * 1.75,
+            Math.sin(phobosAngle * 1.8) * 0.11,
+            Math.sin(phobosAngle) * 0.32,
           );
 
-          points.rotation.y = time * 0.015;
-          points.rotation.x = time * 0.008;
+          const deimosAngle = time * 0.38 + 1.2;
+          deimos.position.set(
+            Math.cos(deimosAngle) * 2.08,
+            Math.sin(deimosAngle * 1.2) * 0.18,
+            Math.sin(deimosAngle) * 0.56,
+          );
+
+          points.rotation.y = time * 0.013;
+          points.rotation.x = time * 0.007;
 
           camera.position.x += ((mx * 0.18) - camera.position.x) * 0.04;
           camera.position.y += ((my * 0.12) - camera.position.y) * 0.04;
@@ -256,27 +308,32 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
           camera.updateProjectionMatrix();
           renderer.setSize(nw, nh);
         };
-        window.addEventListener("resize", onResize, { passive: true });
 
+        window.addEventListener("resize", onResize, { passive: true });
         animFrameRef.current = requestAnimationFrame(animate);
 
         return () => {
           cancelled = true;
           window.removeEventListener("resize", onResize);
           cancelAnimationFrame(animFrameRef.current);
+
           planetGeo.dispose();
           planetMat.dispose();
+          dustGeo.dispose();
+          dustMat.dispose();
           atmosphereGeo.dispose();
           atmosphereMat.dispose();
-          orbitRingGeo.dispose();
-          orbitRingMat.dispose();
-          orbitRing2.geometry.dispose();
-          (orbitRing2.material as any).dispose?.();
-          moonGeo.dispose();
-          moonMat.dispose();
+          phobosGeo.dispose();
+          phobosMat.dispose();
+          deimosGeo.dispose();
+          deimosMat.dispose();
           ptGeo.dispose();
           ptMat.dispose();
-          marsTexture?.dispose();
+
+          marsAlbedo.dispose();
+          marsBump?.dispose();
+          dustAlpha?.dispose();
+
           renderer.dispose();
           if (mountRef.current && renderer.domElement.parentNode === mountRef.current) {
             mountRef.current.removeChild(renderer.domElement);
@@ -308,81 +365,38 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
       duration: 2 + Math.random() * 4,
     }));
 
-    const rotX = mouseY * 18;
-    const rotY = mouseX * 18;
+    const rotX = mouseY * 16;
+    const rotY = mouseX * 16;
 
     return (
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {particles.map((p, i) => <Particle key={i} {...p} />)}
         <motion.div
-          className="absolute right-12 top-1/2 -translate-y-1/2"
+          className="absolute right-12 top-1/2 -translate-y-1/2 rounded-full"
           style={{
             width: 320,
             height: 320,
             transformStyle: "preserve-3d",
             perspective: 800,
+            border: "1px solid hsl(26 74% 52% / 0.26)",
+            background:
+              "radial-gradient(circle at 35% 30%, hsl(29 82% 66% / 0.52) 0%, hsl(18 68% 39% / 0.36) 42%, hsl(13 59% 24% / 0.2) 70%, transparent 100%)",
+            boxShadow: "0 0 44px hsl(24 76% 50% / 0.26)",
           }}
-          animate={{
-            rotateX: rotX,
-            rotateY: rotY,
-          }}
+          animate={{ rotateX: rotX, rotateY: rotY }}
           transition={{ type: "spring", stiffness: 60, damping: 20 }}
         >
-          {/* Outer ring */}
           <motion.div
-            className="absolute inset-0 rounded-full border"
-            style={{ borderColor: "hsl(24 74% 46% / 0.35)" }}
+            className="absolute inset-4 rounded-full"
+            style={{ border: "1px solid hsl(28 78% 74% / 0.22)" }}
             animate={{ rotate: 360 }}
             transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
           />
-          {/* Middle ring */}
           <motion.div
-            className="absolute inset-8 rounded-full border"
-            style={{ borderColor: "hsl(18 60% 38% / 0.26)", transform: "rotateX(65deg)" }}
+            className="absolute inset-12 rounded-full"
+            style={{ border: "1px solid hsl(18 64% 58% / 0.2)", transform: "rotateX(63deg)" }}
             animate={{ rotate: -360 }}
             transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-          />
-          {/* Inner ring */}
-          <motion.div
-            className="absolute inset-16 rounded-full border"
-            style={{ borderColor: "hsl(14 62% 44% / 0.44)" }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-          />
-          {/* Core */}
-          <div
-            className="absolute inset-24 rounded-full"
-            style={{
-              background: "radial-gradient(circle, hsl(21 76% 44% / 0.48) 0%, hsl(12 52% 24% / 0.16) 70%, transparent 100%)",
-              boxShadow: "0 0 46px hsl(20 72% 44% / 0.25)",
-            }}
-          />
-          {/* Orbit dot */}
-          <motion.div
-            className="absolute w-3 h-3 rounded-full"
-            style={{
-              background: "hsl(38 85% 52%)",
-              top: "50%",
-              left: "50%",
-              marginTop: -6,
-              marginLeft: -6,
-              transformOrigin: "6px -130px",
-            }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-          />
-          <motion.div
-            className="absolute w-2 h-2 rounded-full"
-            style={{
-              background: "hsl(16 68% 52%)",
-              top: "50%",
-              left: "50%",
-              marginTop: -4,
-              marginLeft: -4,
-              transformOrigin: "4px 100px",
-            }}
-            animate={{ rotate: -360 }}
-            transition={{ duration: 9, repeat: Infinity, ease: "linear" }}
           />
         </motion.div>
       </div>
