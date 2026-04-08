@@ -1,8 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
-import { motion, useInView, AnimatePresence } from "framer-motion";
+import {
+  motion,
+  useInView,
+  AnimatePresence,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import HeroScene from "@/components/HeroScene";
 import {
+  type BlogPost,
   useGetRecentBlogPosts,
   useSendMessage,
 } from "@workspace/api-client-react";
@@ -111,6 +119,16 @@ function FadeInSection({ children, delay = 0 }: { children: React.ReactNode; del
 function HeroSection() {
   const [roleIdx, setRoleIdx] = useState(0);
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
+  const { scrollYProgress } = useScroll();
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 130,
+    damping: 24,
+    mass: 0.25,
+  });
+  const sceneY = useTransform(smoothProgress, [0, 0.3], [0, 42]);
+  const contentY = useTransform(smoothProgress, [0, 0.22], [0, -70]);
+  const contentOpacity = useTransform(smoothProgress, [0, 0.22], [1, 0.35]);
+  const scrollHintOpacity = useTransform(smoothProgress, [0, 0.16], [1, 0]);
 
   useEffect(() => {
     const interval = setInterval(() => setRoleIdx((i) => (i + 1) % ROLES.length), 2800);
@@ -131,9 +149,9 @@ function HeroSection() {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden" style={{ background: "hsl(var(--background))" }}>
       {/* 3D Canvas — full background */}
-      <div className="absolute inset-0 pointer-events-none">
+      <motion.div className="absolute inset-0 pointer-events-none" style={{ y: sceneY }}>
         <HeroScene mouseX={mouse.x} mouseY={mouse.y} />
-      </div>
+      </motion.div>
 
       {/* Gradient vignette */}
       <div
@@ -150,7 +168,10 @@ function HeroSection() {
       />
 
       {/* Content */}
-      <div className="relative z-10 max-w-6xl mx-auto px-6 py-32 w-full">
+      <motion.div
+        className="relative z-10 max-w-6xl mx-auto px-6 py-32 w-full"
+        style={{ y: contentY, opacity: contentOpacity }}
+      >
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -224,11 +245,12 @@ function HeroSection() {
           </div>
         </motion.div>
 
-      </div>
+      </motion.div>
 
       {/* Scroll indicator */}
       <motion.div
         className="absolute bottom-12 right-8 flex flex-col items-center gap-2"
+        style={{ opacity: scrollHintOpacity }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1, duration: 0.8 }}
@@ -441,14 +463,18 @@ function ProjectsSection() {
 
 function BlogSection() {
   const { data: posts, isLoading } = useGetRecentBlogPosts();
+  type BlogPreview = Pick<BlogPost, "title" | "excerpt" | "tags" | "publishedAt"> & {
+    slug?: string;
+  };
 
-  const placeholders = [
+  const placeholders: BlogPreview[] = [
     { title: "Building Agentic RAG Systems with LangGraph", excerpt: "A deep dive into constructing multi-step retrieval-augmented generation pipelines.", tags: ["AI", "LangGraph", "RAG"], publishedAt: "2026-03-15" },
     { title: "Contributing AWS SigV4 Auth to Jaeger", excerpt: "How I implemented IAM authentication for Jaeger's Elasticsearch/OpenSearch storage backend.", tags: ["Go", "CNCF", "AWS"], publishedAt: "2026-02-28" },
     { title: "MCP in Practice: Building Agentic Tools", excerpt: "A practical guide to the Model Context Protocol and building MCP servers that integrate with Claude.", tags: ["AI", "MCP", "Python"], publishedAt: "2026-03-25" },
   ];
 
-  const displayPosts = posts ?? placeholders;
+  const displayPosts: BlogPreview[] =
+    Array.isArray(posts) ? posts : placeholders;
 
   return (
     <section id="blog" className="py-28" style={{ background: "hsl(var(--card))" }}>
@@ -475,7 +501,7 @@ function BlogSection() {
           </div>
         ) : (
           <div className="grid md:grid-cols-3 gap-6">
-            {displayPosts.slice(0, 3).map((post: any, i: number) => (
+            {displayPosts.slice(0, 3).map((post, i) => (
               <FadeInSection key={post.slug ?? i} delay={i * 0.08}>
                 <Link href={post.slug ? `/blog/${post.slug}` : "/blog"}>
                   <div
@@ -489,7 +515,7 @@ function BlogSection() {
                     onMouseLeave={(e) => (e.currentTarget.style.borderColor = "hsl(var(--border))")}
                   >
                     <div className="flex flex-wrap gap-1.5 mb-4">
-                      {post.tags?.slice(0, 2).map((tag: string) => (
+                      {post.tags?.slice(0, 2).map((tag) => (
                         <span key={tag} className="tag-pill">{tag}</span>
                       ))}
                     </div>
