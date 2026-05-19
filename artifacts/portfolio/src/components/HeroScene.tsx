@@ -26,21 +26,6 @@ function Particle({ x, y, size, opacity, duration }: {
   );
 }
 
-const EARTH_TEXTURES = {
-  day: "/textures/earth/earth_daymap_2k.jpg",
-  clouds: "/textures/earth/earth_clouds_2k.jpg",
-  normal: "/textures/earth/earth_normal_2048.jpg",
-  specular: "/textures/earth/earth_specular_2048.jpg",
-  lights: "/textures/earth/earth_lights_2048.png",
-};
-
-function loadTexture(THREE: any, path: string) {
-  return new Promise<any>((resolve, reject) => {
-    const loader = new THREE.TextureLoader();
-    loader.load(path, resolve, undefined, reject);
-  });
-}
-
 export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
   const [webglOk, setWebglOk] = useState<boolean | null>(null);
   const mountRef = useRef<HTMLDivElement>(null);
@@ -66,6 +51,7 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
     async function init() {
       try {
         const THREE = await import("three");
+        const { GLTFLoader } = await import("three/examples/jsm/loaders/GLTFLoader.js");
 
         const w = mountRef.current!.clientWidth;
         const h = mountRef.current!.clientHeight;
@@ -84,37 +70,6 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
         }
         mountRef.current!.appendChild(renderer.domElement);
 
-        const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
-        const anisotropy = Math.min(maxAnisotropy, 8);
-
-        const [dayMap, cloudsMap, normalMap, specularMap, lightsMap] = await Promise.all([
-          loadTexture(THREE, EARTH_TEXTURES.day),
-          loadTexture(THREE, EARTH_TEXTURES.clouds),
-          loadTexture(THREE, EARTH_TEXTURES.normal),
-          loadTexture(THREE, EARTH_TEXTURES.specular),
-          loadTexture(THREE, EARTH_TEXTURES.lights),
-        ]);
-
-        if (cancelled) {
-          dayMap.dispose();
-          cloudsMap.dispose();
-          normalMap.dispose();
-          specularMap.dispose();
-          lightsMap.dispose();
-          renderer.dispose();
-          return;
-        }
-
-        dayMap.colorSpace = THREE.SRGBColorSpace;
-        cloudsMap.colorSpace = THREE.SRGBColorSpace;
-        lightsMap.colorSpace = THREE.SRGBColorSpace;
-
-        dayMap.anisotropy = anisotropy;
-        cloudsMap.anisotropy = anisotropy;
-        normalMap.anisotropy = anisotropy;
-        specularMap.anisotropy = anisotropy;
-        lightsMap.anisotropy = anisotropy;
-
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.44);
         scene.add(ambientLight);
 
@@ -122,64 +77,56 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
         sunLight.position.set(5.2, 3.1, 5.6);
         scene.add(sunLight);
 
-        const rimLight = new THREE.DirectionalLight(0x7bb7ff, 0.4);
+        const rimLight = new THREE.DirectionalLight(0x7bb7ff, 0.8);
         rimLight.position.set(-4.4, -1.8, -3.2);
         scene.add(rimLight);
 
-        const planetGeo = new THREE.SphereGeometry(1.25, 96, 96);
-        const planetMat = new THREE.MeshPhongMaterial({
-          map: dayMap,
-          normalMap,
-          normalScale: new THREE.Vector2(0.58, 0.58),
-          specularMap,
-          specular: new THREE.Color(0x3a67a8),
-          shininess: 18,
-        });
-        const planet = new THREE.Mesh(planetGeo, planetMat);
-        scene.add(planet);
+        const fillLight = new THREE.DirectionalLight(0x2a5298, 0.6);
+        fillLight.position.set(0, 5, 2);
+        scene.add(fillLight);
 
-        const lightsGeo = new THREE.SphereGeometry(1.252, 96, 96);
-        const lightsMat = new THREE.MeshBasicMaterial({
-          map: lightsMap,
-          transparent: true,
-          blending: THREE.AdditiveBlending,
-          opacity: 0.38,
-          depthWrite: false,
-        });
-        const cityLights = new THREE.Mesh(lightsGeo, lightsMat);
-        scene.add(cityLights);
+        const faceGroup = new THREE.Group();
+        scene.add(faceGroup);
 
-        const cloudGeo = new THREE.SphereGeometry(1.285, 96, 96);
-        const cloudMat = new THREE.MeshPhongMaterial({
-          map: cloudsMap,
-          alphaMap: cloudsMap,
-          transparent: true,
-          opacity: 0.3,
-          depthWrite: false,
-          side: THREE.DoubleSide,
-          color: 0xffffff,
+        const loader = new GLTFLoader();
+        const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+        const gltf = await new Promise<any>((resolve, reject) => {
+          loader.load(`${basePath}/models/face.glb`, resolve, undefined, reject);
         });
-        const clouds = new THREE.Mesh(cloudGeo, cloudMat);
-        scene.add(clouds);
 
-        const atmosphereGeo = new THREE.SphereGeometry(1.34, 64, 64);
-        const atmosphereMat = new THREE.MeshBasicMaterial({
-          color: 0x6db9ff,
-          transparent: true,
-          opacity: 0.13,
-          side: THREE.BackSide,
-        });
-        const atmosphere = new THREE.Mesh(atmosphereGeo, atmosphereMat);
-        scene.add(atmosphere);
+        if (cancelled) {
+          renderer.dispose();
+          return;
+        }
 
-        const moonGeo = new THREE.SphereGeometry(0.09, 24, 24);
-        const moonMat = new THREE.MeshStandardMaterial({
-          color: 0xb3bed2,
-          roughness: 0.9,
-          metalness: 0.02,
+        const faceModel = gltf.scene;
+        
+        // Create an impressive wireframe/glass material
+        const faceMaterial = new THREE.MeshPhysicalMaterial({
+          color: 0x112233,
+          metalness: 0.8,
+          roughness: 0.2,
+          clearcoat: 1.0,
+          clearcoatRoughness: 0.1,
+          wireframe: true,
+          emissive: 0x0a1a2a,
         });
-        const moon = new THREE.Mesh(moonGeo, moonMat);
-        scene.add(moon);
+
+        faceModel.traverse((child: any) => {
+          if (child.isMesh) {
+             child.material = faceMaterial;
+          }
+        });
+
+        // Center and scale the model
+        const box = new THREE.Box3().setFromObject(faceModel);
+        const center = box.getCenter(new THREE.Vector3());
+        faceModel.position.sub(center);
+        
+        // Adjust scale so it fits nicely
+        // LeePerrySmith model is relatively small but could need scaling depending on camera
+        faceGroup.scale.set(0.4, 0.4, 0.4); 
+        faceGroup.add(faceModel);
 
         const count = 1400;
         const positions = new Float32Array(count * 3);
@@ -209,28 +156,10 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
           const mx = mouseRef.current.x;
           const my = mouseRef.current.y;
 
-          planet.rotation.y = time * 0.08 + mx * 0.16;
-          planet.rotation.x = my * 0.05 + Math.sin(time * 0.2) * 0.01;
-          planet.position.y = Math.sin(time * 0.42) * 0.06;
-
-          cityLights.rotation.y = planet.rotation.y;
-          cityLights.rotation.x = planet.rotation.x;
-          cityLights.position.y = planet.position.y;
-
-          clouds.rotation.y = planet.rotation.y * 1.15 + time * 0.04;
-          clouds.rotation.x = planet.rotation.x * 1.04;
-          clouds.position.y = planet.position.y;
-
-          atmosphere.rotation.y = planet.rotation.y * 1.02;
-          atmosphere.rotation.x = planet.rotation.x * 1.01;
-          atmosphere.position.y = planet.position.y;
-
-          const moonAngle = time * 0.34;
-          moon.position.set(
-            Math.cos(moonAngle) * 1.9,
-            Math.sin(moonAngle * 1.3) * 0.2,
-            Math.sin(moonAngle) * 0.68,
-          );
+          // Gentle rotation following mouse
+          faceGroup.rotation.y = time * 0.1 + mx * 0.2;
+          faceGroup.rotation.x = my * 0.1 + Math.sin(time * 0.2) * 0.02;
+          faceGroup.position.y = Math.sin(time * 0.42) * 0.06;
 
           points.rotation.y = time * 0.012;
           points.rotation.x = time * 0.006;
@@ -259,31 +188,23 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
           window.removeEventListener("resize", onResize);
           cancelAnimationFrame(animFrameRef.current);
 
-          planetGeo.dispose();
-          planetMat.dispose();
-          lightsGeo.dispose();
-          lightsMat.dispose();
-          cloudGeo.dispose();
-          cloudMat.dispose();
-          atmosphereGeo.dispose();
-          atmosphereMat.dispose();
-          moonGeo.dispose();
-          moonMat.dispose();
           ptGeo.dispose();
           ptMat.dispose();
-
-          dayMap.dispose();
-          cloudsMap.dispose();
-          normalMap.dispose();
-          specularMap.dispose();
-          lightsMap.dispose();
+          faceMaterial.dispose();
+          faceModel.traverse((child: any) => {
+            if (child.isMesh) {
+              child.geometry?.dispose();
+              child.material?.dispose();
+            }
+          });
 
           renderer.dispose();
           if (mountRef.current && renderer.domElement.parentNode === mountRef.current) {
             mountRef.current.removeChild(renderer.domElement);
           }
         };
-      } catch {
+      } catch (err) {
+        console.error(err);
         setWebglOk(false);
         return undefined;
       }
