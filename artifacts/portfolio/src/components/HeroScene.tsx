@@ -70,19 +70,17 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
         }
         mountRef.current!.appendChild(renderer.domElement);
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.44);
+        // Add warmer lighting for a textured human model
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         scene.add(ambientLight);
 
-        const sunLight = new THREE.DirectionalLight(0xffffff, 1.18);
-        sunLight.position.set(5.2, 3.1, 5.6);
-        scene.add(sunLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        dirLight.position.set(2, 5, 3);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
 
-        const rimLight = new THREE.DirectionalLight(0x7bb7ff, 0.8);
-        rimLight.position.set(-4.4, -1.8, -3.2);
-        scene.add(rimLight);
-
-        const fillLight = new THREE.DirectionalLight(0x2a5298, 0.6);
-        fillLight.position.set(0, 5, 2);
+        const fillLight = new THREE.DirectionalLight(0x90b0d0, 0.5);
+        fillLight.position.set(-2, 1, -2);
         scene.add(fillLight);
 
         const faceGroup = new THREE.Group();
@@ -91,7 +89,8 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
         const loader = new GLTFLoader();
         const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
         const gltf = await new Promise<any>((resolve, reject) => {
-          loader.load(`${basePath}/models/face.glb`, resolve, undefined, reject);
+          // Pointing to male.glb as requested, which can be replaced with the bearded avatar
+          loader.load(`${basePath}/models/male.glb`, resolve, undefined, reject);
         });
 
         if (cancelled) {
@@ -101,20 +100,12 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
 
         const faceModel = gltf.scene;
         
-        // Create an impressive wireframe/glass material
-        const faceMaterial = new THREE.MeshPhysicalMaterial({
-          color: 0x112233,
-          metalness: 0.8,
-          roughness: 0.2,
-          clearcoat: 1.0,
-          clearcoatRoughness: 0.1,
-          wireframe: true,
-          emissive: 0x0a1a2a,
-        });
-
+        // Ensure the model's original materials and colors are visible
+        // We only enable shadow casting/receiving
         faceModel.traverse((child: any) => {
           if (child.isMesh) {
-             child.material = faceMaterial;
+            child.castShadow = true;
+            child.receiveShadow = true;
           }
         });
 
@@ -190,11 +181,18 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
 
           ptGeo.dispose();
           ptMat.dispose();
-          faceMaterial.dispose();
           faceModel.traverse((child: any) => {
             if (child.isMesh) {
               child.geometry?.dispose();
-              child.material?.dispose();
+              // Original materials can be complex; best to let Three.js garbage collector handle them
+              // or dispose if specifically known, but typically child.material?.dispose() works:
+              if (child.material) {
+                  if (Array.isArray(child.material)) {
+                      child.material.forEach((m: any) => m.dispose());
+                  } else {
+                      child.material.dispose();
+                  }
+              }
             }
           });
 
