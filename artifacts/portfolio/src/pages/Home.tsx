@@ -22,6 +22,7 @@ const SKILLS = [
   { group: "AI / Agentic", items: ["LangChain", "LangGraph", "RAG", "MCP", "ChromaDB", "Agentic RAG"] },
   { group: "ML / Data", items: ["scikit-learn", "Pandas", "NumPy", "Sentence Transformers"] },
   { group: "Backend / DevOps", items: ["FastAPI", "Gin", "Docker", "Kubernetes", "Kubeflow", "AWS"] },
+  { group: "Tools / Agentic", items: ["Claude Code", "Antigravity", "Codex", "MCP", "Skills Framework"] },
   { group: "Observability", items: ["OpenTelemetry", "Jaeger", "Prometheus", "Elasticsearch"] },
 ];
 
@@ -74,6 +75,14 @@ const PROJECTS = [
     tagline: "Agentic GitHub Codebase Intelligence",
     desc: "An AI assistant for GitHub repositories that helps users understand unfamiliar codebases faster — answers questions, surfaces relevant code, and generates diagrams from natural language.",
     stack: ["Python", "FastAPI", "LangGraph", "RAG", "MCP", "ChromaDB", "Next.js", "Docker"],
+    github: "https://github.com/SoumyaRaikwar",
+    featured: true,
+  },
+  {
+    name: "AI-Native Development Workflow",
+    tagline: "Agentic Tools & Infrastructure",
+    desc: "Architected MCP chaining pipelines with LangGraph routing, cutting context-switching overhead. Leveraged Anthropic's Skills framework to define reusable capability blocks. Operated Claude Code, Cursor, Codex, and Antigravity for full-repo refactoring under strict verification loops.",
+    stack: ["Claude Code", "Antigravity", "Codex", "MCP Chaining", "Skills Framework"],
     github: "https://github.com/SoumyaRaikwar",
     featured: true,
   },
