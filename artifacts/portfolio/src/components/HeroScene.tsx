@@ -26,8 +26,13 @@ function Particle({ x, y, size, opacity, duration }: {
   );
 }
 
-const MARS_TEXTURES = {
-  albedo: "/textures/mars/nasa_mars_albedo.jpg",
+const TEXTURES = {
+  earthDay: "/textures/earth/earth_daymap_2k.jpg",
+  earthClouds: "/textures/earth/earth_clouds_2k.jpg",
+  earthNormal: "/textures/earth/earth_normal_2048.jpg",
+  earthSpecular: "/textures/earth/earth_specular_2048.jpg",
+  earthLights: "/textures/earth/earth_lights_2048.png",
+  marsAlbedo: "/textures/mars/nasa_mars_albedo.jpg",
 };
 
 function loadTexture(THREE: any, path: string) {
@@ -66,51 +71,6 @@ function createBumpTextureFromColor(THREE: any, colorTexture: any, anisotropy: n
   return bump;
 }
 
-function createDustTexture(THREE: any, anisotropy: number) {
-  const size = 1024;
-  const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return null;
-
-  ctx.clearRect(0, 0, size, size);
-
-  for (let i = 0; i < 120; i += 1) {
-    const x = Math.random() * size;
-    const y = Math.random() * size;
-    const r = 16 + Math.random() * 130;
-    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0, "rgba(255, 186, 118, 0.25)");
-    g.addColorStop(1, "rgba(255, 186, 118, 0)");
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  for (let i = 0; i < 38; i += 1) {
-    ctx.strokeStyle = "rgba(255, 208, 160, 0.18)";
-    ctx.lineWidth = 1 + Math.random() * 2;
-    ctx.beginPath();
-    ctx.ellipse(
-      Math.random() * size,
-      Math.random() * size,
-      70 + Math.random() * 280,
-      12 + Math.random() * 48,
-      Math.random() * Math.PI,
-      0,
-      Math.PI * 2,
-    );
-    ctx.stroke();
-  }
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.anisotropy = anisotropy;
-  texture.needsUpdate = true;
-  return texture;
-}
-
 export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
   const [webglOk, setWebglOk] = useState<boolean | null>(null);
   const mountRef = useRef<HTMLDivElement>(null);
@@ -141,13 +101,16 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
         const h = mountRef.current!.clientHeight;
 
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(55, w / h, 0.1, 100);
-        camera.position.z = 4;
+        const camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 100);
+        camera.position.set(0, 0.1, 5.4);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(w, h);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
         renderer.setClearColor(0x000000, 0);
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.05;
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
         if (cancelled) {
           renderer.dispose();
           return;
@@ -157,100 +120,154 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
         const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
         const anisotropy = Math.min(maxAnisotropy, 8);
 
-        const marsAlbedo = await loadTexture(THREE, MARS_TEXTURES.albedo);
+        const [earthDay, earthClouds, earthNormal, earthSpecular, earthLights, marsAlbedo] = await Promise.all([
+          loadTexture(THREE, TEXTURES.earthDay),
+          loadTexture(THREE, TEXTURES.earthClouds),
+          loadTexture(THREE, TEXTURES.earthNormal),
+          loadTexture(THREE, TEXTURES.earthSpecular),
+          loadTexture(THREE, TEXTURES.earthLights),
+          loadTexture(THREE, TEXTURES.marsAlbedo),
+        ]);
+
         if (cancelled) {
-          marsAlbedo.dispose();
           renderer.dispose();
           return;
         }
 
-        marsAlbedo.colorSpace = THREE.SRGBColorSpace;
-        marsAlbedo.anisotropy = anisotropy;
+        [earthDay, earthClouds, marsAlbedo, earthLights].forEach((t) => {
+          t.colorSpace = THREE.SRGBColorSpace;
+          t.anisotropy = anisotropy;
+        });
+        earthNormal.anisotropy = anisotropy;
+        earthSpecular.anisotropy = anisotropy;
 
         const marsBump = createBumpTextureFromColor(THREE, marsAlbedo, anisotropy);
-        const dustAlpha = createDustTexture(THREE, anisotropy);
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        // --- Lighting: warm sun key light + soft fill so planets always read clearly ---
+        const ambientLight = new THREE.AmbientLight(0x9fb0d8, 0.55);
         scene.add(ambientLight);
 
-        const sunLight = new THREE.DirectionalLight(0xffd9b6, 1.35);
-        sunLight.position.set(5.2, 3.2, 5.7);
+        const sunPosition = new THREE.Vector3(2.6, 1.5, -1.1);
+        const sunLight = new THREE.PointLight(0xffd9a8, 34, 30, 1.15);
+        sunLight.position.copy(sunPosition);
         scene.add(sunLight);
 
-        const bounceLight = new THREE.DirectionalLight(0x9a4e28, 0.42);
-        bounceLight.position.set(-4.6, -1.6, -3.5);
-        scene.add(bounceLight);
+        const fillLight = new THREE.DirectionalLight(0x6f8fc4, 0.5);
+        fillLight.position.set(-3, -1, 3);
+        scene.add(fillLight);
 
-        const planetGeo = new THREE.SphereGeometry(1.25, 96, 96);
-        const planetMat = new THREE.MeshStandardMaterial({
+        // Sun kept only as an invisible light source (sunLight above) — no visible
+        // sun mesh in the scene, per direction to drop it entirely.
+
+        const systemGroup = new THREE.Group();
+        scene.add(systemGroup);
+
+        // --- Earth ---
+        const earthOrbit = new THREE.Group();
+        earthOrbit.rotation.x = 0.34;
+        earthOrbit.rotation.z = -0.08;
+        systemGroup.add(earthOrbit);
+
+        const earthPivot = new THREE.Group();
+        earthOrbit.add(earthPivot);
+
+        const earthGeo = new THREE.SphereGeometry(0.42, 64, 64);
+        const earthMat = new THREE.MeshPhongMaterial({
+          map: earthDay,
+          normalMap: earthNormal,
+          specularMap: earthSpecular,
+          specular: new THREE.Color(0x333333),
+          shininess: 8,
+          emissiveMap: earthLights,
+          emissive: new THREE.Color(0xffdca0),
+          emissiveIntensity: 0.55,
+        });
+        const earth = new THREE.Mesh(earthGeo, earthMat);
+        earth.rotation.z = 0.41;
+        earthPivot.add(earth);
+
+        const cloudsGeo = new THREE.SphereGeometry(0.428, 64, 64);
+        const cloudsMat = new THREE.MeshPhongMaterial({
+          map: earthClouds,
+          transparent: true,
+          opacity: 0.55,
+          depthWrite: false,
+        });
+        const clouds = new THREE.Mesh(cloudsGeo, cloudsMat);
+        clouds.rotation.z = 0.41;
+        earthPivot.add(clouds);
+
+        const earthAtmoGeo = new THREE.SphereGeometry(0.45, 48, 48);
+        const earthAtmoMat = new THREE.MeshBasicMaterial({
+          color: 0x6fb2ff,
+          transparent: true,
+          opacity: 0.16,
+          side: THREE.BackSide,
+        });
+        earthPivot.add(new THREE.Mesh(earthAtmoGeo, earthAtmoMat));
+
+        // --- Mars (smaller, farther orbit) ---
+        const marsOrbit = new THREE.Group();
+        marsOrbit.rotation.x = -0.22;
+        marsOrbit.rotation.z = 0.14;
+        systemGroup.add(marsOrbit);
+
+        const marsPivot = new THREE.Group();
+        marsOrbit.add(marsPivot);
+
+        const marsGeo = new THREE.SphereGeometry(0.24, 48, 48);
+        const marsMat = new THREE.MeshStandardMaterial({
           map: marsAlbedo,
           bumpMap: marsBump,
-          bumpScale: 0.06,
+          bumpScale: 0.05,
           roughness: 0.9,
           metalness: 0.02,
           emissive: 0x34170b,
-          emissiveIntensity: 0.14,
+          emissiveIntensity: 0.12,
         });
-        const planet = new THREE.Mesh(planetGeo, planetMat);
-        scene.add(planet);
+        const mars = new THREE.Mesh(marsGeo, marsMat);
+        marsPivot.add(mars);
 
-        const dustGeo = new THREE.SphereGeometry(1.295, 96, 96);
-        const dustMat = new THREE.MeshPhongMaterial({
-          map: dustAlpha,
-          alphaMap: dustAlpha,
-          color: 0xf1ac70,
-          transparent: true,
-          opacity: 0.18,
-          depthWrite: false,
-          blending: THREE.AdditiveBlending,
-          side: THREE.DoubleSide,
-        });
-        const dustLayer = new THREE.Mesh(dustGeo, dustMat);
-        scene.add(dustLayer);
-
-        const atmosphereGeo = new THREE.SphereGeometry(1.34, 64, 64);
-        const atmosphereMat = new THREE.MeshBasicMaterial({
+        const marsAtmoGeo = new THREE.SphereGeometry(0.257, 32, 32);
+        const marsAtmoMat = new THREE.MeshBasicMaterial({
           color: 0xea9e61,
           transparent: true,
-          opacity: 0.13,
+          opacity: 0.15,
           side: THREE.BackSide,
         });
-        const atmosphere = new THREE.Mesh(atmosphereGeo, atmosphereMat);
-        scene.add(atmosphere);
+        marsPivot.add(new THREE.Mesh(marsAtmoGeo, marsAtmoMat));
 
-        const phobosGeo = new THREE.SphereGeometry(0.05, 18, 18);
-        const phobosMat = new THREE.MeshStandardMaterial({
-          color: 0x9f8062,
-          roughness: 0.92,
-          metalness: 0.01,
-        });
-        const phobos = new THREE.Mesh(phobosGeo, phobosMat);
-        scene.add(phobos);
+        // --- A tiny moon around Earth for depth ---
+        const moonGeo = new THREE.SphereGeometry(0.09, 20, 20);
+        const moonMat = new THREE.MeshStandardMaterial({ color: 0xb9b4ac, roughness: 0.95, metalness: 0.01 });
+        const moon = new THREE.Mesh(moonGeo, moonMat);
+        earthPivot.add(moon);
 
-        const deimosGeo = new THREE.SphereGeometry(0.032, 14, 14);
-        const deimosMat = new THREE.MeshStandardMaterial({
-          color: 0x8d725f,
-          roughness: 0.94,
-          metalness: 0.01,
-        });
-        const deimos = new THREE.Mesh(deimosGeo, deimosMat);
-        scene.add(deimos);
+        // --- Faint orbit rings ---
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0xffb066, transparent: true, opacity: 0.1, side: THREE.DoubleSide });
+        const earthRing = new THREE.Mesh(new THREE.RingGeometry(1.55, 1.558, 128), ringMat);
+        earthOrbit.add(earthRing);
+        const marsRing = new THREE.Mesh(new THREE.RingGeometry(2.35, 2.358, 128), ringMat.clone());
+        marsOrbit.add(marsRing);
 
-        const count = 1800;
+        systemGroup.position.set(0.55, 0.05, -0.6);
+
+        // --- Starfield ---
+        const count = 2600;
         const positions = new Float32Array(count * 3);
         for (let i = 0; i < count; i += 1) {
-          positions[i * 3] = (Math.random() - 0.5) * 18;
-          positions[i * 3 + 1] = (Math.random() - 0.5) * 18;
-          positions[i * 3 + 2] = (Math.random() - 0.5) * 18;
+          positions[i * 3] = (Math.random() - 0.5) * 22;
+          positions[i * 3 + 1] = (Math.random() - 0.5) * 22;
+          positions[i * 3 + 2] = (Math.random() - 0.5) * 22 - 3;
         }
         const ptGeo = new THREE.BufferGeometry();
         ptGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
         const ptMat = new THREE.PointsMaterial({
-          color: 0xe8a663,
-          size: 0.02,
+          color: 0xf0e2cc,
+          size: 0.016,
           sizeAttenuation: true,
           transparent: true,
-          opacity: 0.45,
+          opacity: 0.6,
           depthWrite: false,
         });
         const points = new THREE.Points(ptGeo, ptMat);
@@ -264,38 +281,26 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
           const mx = mouseRef.current.x;
           const my = mouseRef.current.y;
 
-          planet.rotation.y = time * 0.1 + mx * 0.18;
-          planet.rotation.x = my * 0.07 + Math.sin(time * 0.24) * 0.015;
-          planet.position.y = Math.sin(time * 0.42) * 0.065;
+          earth.rotation.y = time * 0.12;
+          clouds.rotation.y = time * 0.16;
+          mars.rotation.y = time * 0.09;
 
-          dustLayer.rotation.y = planet.rotation.y * 1.26 + time * 0.06;
-          dustLayer.rotation.x = planet.rotation.x * 1.04;
-          dustLayer.position.y = planet.position.y;
+          const earthAngle = time * 0.16;
+          earthPivot.position.set(Math.cos(earthAngle) * 1.55, 0, Math.sin(earthAngle) * 1.55);
+          moon.position.set(Math.cos(time * 0.9) * 0.66, Math.sin(time * 0.9 * 1.3) * 0.1, Math.sin(time * 0.9) * 0.66);
 
-          atmosphere.rotation.y = planet.rotation.y * 1.05;
-          atmosphere.rotation.x = planet.rotation.x * 1.02;
-          atmosphere.position.y = planet.position.y;
+          const marsAngle = time * 0.09 + 2.1;
+          marsPivot.position.set(Math.cos(marsAngle) * 2.35, 0, Math.sin(marsAngle) * 2.35);
 
-          const phobosAngle = time * 0.72;
-          phobos.position.set(
-            Math.cos(phobosAngle) * 1.75,
-            Math.sin(phobosAngle * 1.8) * 0.11,
-            Math.sin(phobosAngle) * 0.32,
-          );
+          systemGroup.rotation.y = time * 0.015 + mx * 0.05;
+          systemGroup.rotation.x = my * 0.03;
 
-          const deimosAngle = time * 0.38 + 1.2;
-          deimos.position.set(
-            Math.cos(deimosAngle) * 2.08,
-            Math.sin(deimosAngle * 1.2) * 0.18,
-            Math.sin(deimosAngle) * 0.56,
-          );
+          points.rotation.y = time * 0.007;
+          points.rotation.x = time * 0.004;
 
-          points.rotation.y = time * 0.013;
-          points.rotation.x = time * 0.007;
-
-          camera.position.x += ((mx * 0.18) - camera.position.x) * 0.04;
-          camera.position.y += ((my * 0.12) - camera.position.y) * 0.04;
-          camera.lookAt(0, 0, 0);
+          camera.position.x += ((mx * 0.28) - camera.position.x) * 0.035;
+          camera.position.y += ((0.1 + my * 0.18) - camera.position.y) * 0.035;
+          camera.lookAt(0.4, 0, -0.4);
 
           renderer.render(scene, camera);
         };
@@ -317,29 +322,24 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
           window.removeEventListener("resize", onResize);
           cancelAnimationFrame(animFrameRef.current);
 
-          planetGeo.dispose();
-          planetMat.dispose();
-          dustGeo.dispose();
-          dustMat.dispose();
-          atmosphereGeo.dispose();
-          atmosphereMat.dispose();
-          phobosGeo.dispose();
-          phobosMat.dispose();
-          deimosGeo.dispose();
-          deimosMat.dispose();
-          ptGeo.dispose();
-          ptMat.dispose();
+          scene.traverse((obj: any) => {
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) {
+              if (Array.isArray(obj.material)) obj.material.forEach((m: any) => m.dispose());
+              else obj.material.dispose();
+            }
+          });
 
-          marsAlbedo.dispose();
+          [earthDay, earthClouds, earthNormal, earthSpecular, earthLights, marsAlbedo].forEach((t) => t.dispose());
           marsBump?.dispose();
-          dustAlpha?.dispose();
 
           renderer.dispose();
           if (mountRef.current && renderer.domElement.parentNode === mountRef.current) {
             mountRef.current.removeChild(renderer.domElement);
           }
         };
-      } catch {
+      } catch (err) {
+        console.error("HeroScene init failed", err);
         setWebglOk(false);
         return undefined;
       }
@@ -374,14 +374,14 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
         <motion.div
           className="absolute right-12 top-1/2 -translate-y-1/2 rounded-full"
           style={{
-            width: 320,
-            height: 320,
+            width: 280,
+            height: 280,
             transformStyle: "preserve-3d",
             perspective: 800,
             border: "1px solid hsl(26 74% 52% / 0.26)",
             background:
-              "radial-gradient(circle at 35% 30%, hsl(29 82% 66% / 0.52) 0%, hsl(18 68% 39% / 0.36) 42%, hsl(13 59% 24% / 0.2) 70%, transparent 100%)",
-            boxShadow: "0 0 44px hsl(24 76% 50% / 0.26)",
+              "radial-gradient(circle at 35% 30%, hsl(29 82% 66% / 0.4) 0%, hsl(205 60% 45% / 0.28) 42%, hsl(13 59% 24% / 0.16) 70%, transparent 100%)",
+            boxShadow: "0 0 44px hsl(24 76% 50% / 0.2)",
           }}
           animate={{ rotateX: rotX, rotateY: rotY }}
           transition={{ type: "spring", stiffness: 60, damping: 20 }}
@@ -394,7 +394,7 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
           />
           <motion.div
             className="absolute inset-12 rounded-full"
-            style={{ border: "1px solid hsl(18 64% 58% / 0.2)", transform: "rotateX(63deg)" }}
+            style={{ border: "1px solid hsl(200 60% 58% / 0.2)", transform: "rotateX(63deg)" }}
             animate={{ rotate: -360 }}
             transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
           />

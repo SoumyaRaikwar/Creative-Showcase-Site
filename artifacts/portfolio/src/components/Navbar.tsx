@@ -3,6 +3,7 @@ import { Link } from "wouter";
 
 const NAV_LINKS = [
   { label: "About", href: "#about" },
+  { label: "Education", href: "#education" },
   { label: "Experience", href: "#experience" },
   { label: "Projects", href: "#projects" },
   { label: "Blog", href: "#blog" },
@@ -36,7 +37,13 @@ export default function Navbar() {
       style={{
         background: scrolled ? "hsl(22 12% 6% / 0.92)" : "transparent",
         backdropFilter: scrolled ? "blur(12px)" : "none",
-        borderBottom: scrolled ? "1px solid hsl(25 10% 16% / 0.8)" : "1px solid transparent",
+        borderBottom: "1px solid transparent",
+        backgroundImage: scrolled
+          ? "linear-gradient(hsl(22 12% 6% / 0.92), hsl(22 12% 6% / 0.92)), linear-gradient(90deg, transparent, hsl(38 85% 52% / 0.5), transparent)"
+          : "none",
+        backgroundSize: "100% 100%, 100% 1px",
+        backgroundPosition: "0 0, 0 100%",
+        backgroundRepeat: "no-repeat",
       }}
     >
       <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">

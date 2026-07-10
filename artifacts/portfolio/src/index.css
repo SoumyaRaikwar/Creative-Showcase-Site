@@ -198,6 +198,11 @@
   }
   h1, h2, h3 {
     font-family: 'Playfair Display', Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+  :focus-visible {
+    outline: 1px solid hsl(var(--primary));
+    outline-offset: 3px;
   }
 }
 
@@ -230,18 +235,47 @@
   }
 
   .tag-pill {
-    @apply inline-flex items-center px-2.5 py-0.5 text-xs font-medium tracking-wide uppercase;
-    background: hsl(var(--muted));
+    @apply inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium tracking-wide uppercase;
+    background: hsl(var(--muted) / 0.6);
     color: hsl(var(--muted-foreground));
     border: 1px solid hsl(var(--border));
-    border-radius: 2px;
-    letter-spacing: 0.08em;
+    border-radius: 999px;
+    letter-spacing: 0.06em;
+    transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease;
+  }
+  .tag-pill::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: hsl(var(--primary));
+    opacity: 0.75;
+    flex-shrink: 0;
+  }
+  a.tag-pill:hover,
+  .tag-pill:hover {
+    border-color: hsl(var(--primary) / 0.5);
+    color: hsl(var(--foreground));
+    background: hsl(var(--primary) / 0.08);
   }
 
   .section-line {
+    position: relative;
     width: 3rem;
     height: 1px;
+    background: linear-gradient(90deg, hsl(var(--primary)), transparent);
+  }
+  .section-line::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
     background: hsl(var(--primary));
+    transform: translateY(-50%);
+    box-shadow: 0 0 6px hsl(var(--primary) / 0.7);
   }
 
   .hover-lift {
@@ -249,6 +283,37 @@
   }
   .hover-lift:hover {
     transform: translateY(-4px);
+  }
+
+  /* Bordered surface used for cards / PR entries / education tiles — soft amber glow on hover
+     instead of a flat border-color swap, so hover state reads as depth rather than a toggle. */
+  .panel-hover {
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  .panel-hover:hover {
+    border-color: hsl(var(--primary) / 0.45);
+    box-shadow: 0 12px 32px -18px hsl(var(--primary) / 0.35), 0 0 0 1px hsl(var(--primary) / 0.06) inset;
+    transform: translateY(-2px);
+  }
+
+  .btn-primary {
+    transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.25s ease, opacity 0.25s ease;
+    box-shadow: 0 10px 30px -14px hsl(var(--primary) / 0.55);
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 36px -12px hsl(var(--primary) / 0.7);
+    opacity: 0.92;
+  }
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-secondary {
+    transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94), border-color 0.25s ease, color 0.25s ease;
+  }
+  .btn-secondary:hover {
+    transform: translateY(-2px);
   }
 }
 

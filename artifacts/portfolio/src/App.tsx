@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Navbar from "@/components/Navbar";
 import CursorEffect from "@/components/CursorEffect";
+import IntroLoader from "@/components/IntroLoader";
 import Home from "@/pages/Home";
 import BlogList from "@/pages/BlogList";
 import BlogPost from "@/pages/BlogPost";
@@ -35,6 +36,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <IntroLoader />
         <CursorEffect />
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <Router />
