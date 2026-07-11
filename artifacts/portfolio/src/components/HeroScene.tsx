@@ -33,6 +33,11 @@ const TEXTURES = {
   earthSpecular: "/textures/earth/earth_specular_2048.jpg",
   earthLights: "/textures/earth/earth_lights_2048.png",
   marsAlbedo: "/textures/mars/nasa_mars_albedo.jpg",
+  moon: "/textures/moon/moon_2k.jpg",
+  jupiter: "/textures/jupiter/jupiter_2k.jpg",
+  saturn: "/textures/saturn/saturn_2k.jpg",
+  saturnRing: "/textures/saturn/saturn_ring_alpha.png",
+  venus: "/textures/venus/venus_atmosphere_2k.jpg",
 };
 
 function loadTexture(THREE: any, path: string) {
@@ -120,13 +125,21 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
         const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
         const anisotropy = Math.min(maxAnisotropy, 8);
 
-        const [earthDay, earthClouds, earthNormal, earthSpecular, earthLights, marsAlbedo] = await Promise.all([
+        const [
+          earthDay, earthClouds, earthNormal, earthSpecular, earthLights, marsAlbedo,
+          moonMap, jupiterMap, saturnMap, saturnRingMap, venusMap,
+        ] = await Promise.all([
           loadTexture(THREE, TEXTURES.earthDay),
           loadTexture(THREE, TEXTURES.earthClouds),
           loadTexture(THREE, TEXTURES.earthNormal),
           loadTexture(THREE, TEXTURES.earthSpecular),
           loadTexture(THREE, TEXTURES.earthLights),
           loadTexture(THREE, TEXTURES.marsAlbedo),
+          loadTexture(THREE, TEXTURES.moon),
+          loadTexture(THREE, TEXTURES.jupiter),
+          loadTexture(THREE, TEXTURES.saturn),
+          loadTexture(THREE, TEXTURES.saturnRing),
+          loadTexture(THREE, TEXTURES.venus),
         ]);
 
         if (cancelled) {
@@ -134,7 +147,7 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
           return;
         }
 
-        [earthDay, earthClouds, marsAlbedo, earthLights].forEach((t) => {
+        [earthDay, earthClouds, marsAlbedo, earthLights, moonMap, jupiterMap, saturnMap, saturnRingMap, venusMap].forEach((t) => {
           t.colorSpace = THREE.SRGBColorSpace;
           t.anisotropy = anisotropy;
         });
@@ -142,6 +155,7 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
         earthSpecular.anisotropy = anisotropy;
 
         const marsBump = createBumpTextureFromColor(THREE, marsAlbedo, anisotropy);
+        const moonBump = createBumpTextureFromColor(THREE, moonMap, anisotropy);
 
         // --- Lighting: warm sun key light + soft fill so planets always read clearly ---
         const ambientLight = new THREE.AmbientLight(0x9fb0d8, 0.55);
@@ -237,18 +251,122 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
         });
         marsPivot.add(new THREE.Mesh(marsAtmoGeo, marsAtmoMat));
 
-        // --- A tiny moon around Earth for depth ---
-        const moonGeo = new THREE.SphereGeometry(0.09, 20, 20);
-        const moonMat = new THREE.MeshStandardMaterial({ color: 0xb9b4ac, roughness: 0.95, metalness: 0.01 });
+        // --- Moon around Earth, textured with real LRO imagery ---
+        const moonGeo = new THREE.SphereGeometry(0.09, 32, 32);
+        const moonMat = new THREE.MeshStandardMaterial({
+          map: moonMap,
+          bumpMap: moonBump,
+          bumpScale: 0.03,
+          roughness: 0.95,
+          metalness: 0.01,
+        });
         const moon = new THREE.Mesh(moonGeo, moonMat);
         earthPivot.add(moon);
 
+        // --- Venus (inner orbit, thick sulfuric cloud deck) ---
+        const venusOrbit = new THREE.Group();
+        venusOrbit.rotation.x = 0.18;
+        venusOrbit.rotation.z = -0.16;
+        systemGroup.add(venusOrbit);
+
+        const venusPivot = new THREE.Group();
+        venusOrbit.add(venusPivot);
+
+        const venusGeo = new THREE.SphereGeometry(0.19, 48, 48);
+        const venusMat = new THREE.MeshStandardMaterial({
+          map: venusMap,
+          roughness: 0.75,
+          metalness: 0.0,
+          emissive: 0x3a2a12,
+          emissiveIntensity: 0.14,
+        });
+        const venus = new THREE.Mesh(venusGeo, venusMat);
+        venusPivot.add(venus);
+
+        const venusAtmoGeo = new THREE.SphereGeometry(0.203, 32, 32);
+        const venusAtmoMat = new THREE.MeshBasicMaterial({
+          color: 0xf2d49a,
+          transparent: true,
+          opacity: 0.14,
+          side: THREE.BackSide,
+        });
+        venusPivot.add(new THREE.Mesh(venusAtmoGeo, venusAtmoMat));
+
+        // --- Jupiter (large, outer orbit) ---
+        const jupiterOrbit = new THREE.Group();
+        jupiterOrbit.rotation.x = 0.26;
+        jupiterOrbit.rotation.z = 0.1;
+        systemGroup.add(jupiterOrbit);
+
+        const jupiterPivot = new THREE.Group();
+        jupiterOrbit.add(jupiterPivot);
+
+        const jupiterGeo = new THREE.SphereGeometry(0.55, 64, 64);
+        const jupiterMat = new THREE.MeshStandardMaterial({
+          map: jupiterMap,
+          roughness: 0.85,
+          metalness: 0.0,
+          emissive: 0x2a1c10,
+          emissiveIntensity: 0.16,
+        });
+        const jupiter = new THREE.Mesh(jupiterGeo, jupiterMat);
+        jupiter.rotation.z = 0.05;
+        jupiterPivot.add(jupiter);
+
+        // --- Saturn with its ring system ---
+        const saturnOrbit = new THREE.Group();
+        saturnOrbit.rotation.x = -0.3;
+        saturnOrbit.rotation.z = -0.12;
+        systemGroup.add(saturnOrbit);
+
+        const saturnPivot = new THREE.Group();
+        saturnOrbit.add(saturnPivot);
+
+        const saturnGeo = new THREE.SphereGeometry(0.42, 64, 64);
+        const saturnMat = new THREE.MeshStandardMaterial({
+          map: saturnMap,
+          roughness: 0.85,
+          metalness: 0.0,
+          emissive: 0x2b2013,
+          emissiveIntensity: 0.16,
+        });
+        const saturn = new THREE.Mesh(saturnGeo, saturnMat);
+        saturnPivot.add(saturn);
+
+        // Remap ring UVs radially so the strip texture reads inner->outer edge
+        const saturnRingGeo = new THREE.RingGeometry(0.55, 0.95, 128);
+        {
+          const pos = saturnRingGeo.attributes.position;
+          const uv = saturnRingGeo.attributes.uv;
+          const v3 = new THREE.Vector3();
+          for (let i = 0; i < pos.count; i += 1) {
+            v3.fromBufferAttribute(pos, i);
+            uv.setXY(i, (v3.length() - 0.55) / (0.95 - 0.55), 1);
+          }
+        }
+        const saturnRingMat = new THREE.MeshBasicMaterial({
+          map: saturnRingMap,
+          transparent: true,
+          opacity: 0.9,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        });
+        const saturnRings = new THREE.Mesh(saturnRingGeo, saturnRingMat);
+        saturnRings.rotation.x = Math.PI / 2 - 0.42;
+        saturnPivot.add(saturnRings);
+
         // --- Faint orbit rings ---
         const ringMat = new THREE.MeshBasicMaterial({ color: 0xffb066, transparent: true, opacity: 0.1, side: THREE.DoubleSide });
+        const venusRing = new THREE.Mesh(new THREE.RingGeometry(1.0, 1.008, 128), ringMat.clone());
+        venusOrbit.add(venusRing);
         const earthRing = new THREE.Mesh(new THREE.RingGeometry(1.55, 1.558, 128), ringMat);
         earthOrbit.add(earthRing);
         const marsRing = new THREE.Mesh(new THREE.RingGeometry(2.35, 2.358, 128), ringMat.clone());
         marsOrbit.add(marsRing);
+        const jupiterRingOrbit = new THREE.Mesh(new THREE.RingGeometry(3.25, 3.258, 160), ringMat.clone());
+        jupiterOrbit.add(jupiterRingOrbit);
+        const saturnRingOrbit = new THREE.Mesh(new THREE.RingGeometry(4.2, 4.208, 160), ringMat.clone());
+        saturnOrbit.add(saturnRingOrbit);
 
         systemGroup.position.set(0.55, 0.05, -0.6);
 
@@ -284,6 +402,13 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
           earth.rotation.y = time * 0.12;
           clouds.rotation.y = time * 0.16;
           mars.rotation.y = time * 0.09;
+          venus.rotation.y = time * 0.05;
+          jupiter.rotation.y = time * 0.22;
+          saturn.rotation.y = time * 0.2;
+          moon.rotation.y = time * 0.06;
+
+          const venusAngle = time * 0.24 + 4.2;
+          venusPivot.position.set(Math.cos(venusAngle) * 1.0, 0, Math.sin(venusAngle) * 1.0);
 
           const earthAngle = time * 0.16;
           earthPivot.position.set(Math.cos(earthAngle) * 1.55, 0, Math.sin(earthAngle) * 1.55);
@@ -291,6 +416,12 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
 
           const marsAngle = time * 0.09 + 2.1;
           marsPivot.position.set(Math.cos(marsAngle) * 2.35, 0, Math.sin(marsAngle) * 2.35);
+
+          const jupiterAngle = time * 0.05 + 0.9;
+          jupiterPivot.position.set(Math.cos(jupiterAngle) * 3.25, 0, Math.sin(jupiterAngle) * 3.25);
+
+          const saturnAngle = time * 0.035 + 3.6;
+          saturnPivot.position.set(Math.cos(saturnAngle) * 4.2, 0, Math.sin(saturnAngle) * 4.2);
 
           systemGroup.rotation.y = time * 0.015 + mx * 0.05;
           systemGroup.rotation.x = my * 0.03;
@@ -330,8 +461,12 @@ export default function HeroScene({ mouseX, mouseY }: HeroSceneProps) {
             }
           });
 
-          [earthDay, earthClouds, earthNormal, earthSpecular, earthLights, marsAlbedo].forEach((t) => t.dispose());
+          [
+            earthDay, earthClouds, earthNormal, earthSpecular, earthLights, marsAlbedo,
+            moonMap, jupiterMap, saturnMap, saturnRingMap, venusMap,
+          ].forEach((t) => t.dispose());
           marsBump?.dispose();
+          moonBump?.dispose();
 
           renderer.dispose();
           if (mountRef.current && renderer.domElement.parentNode === mountRef.current) {
