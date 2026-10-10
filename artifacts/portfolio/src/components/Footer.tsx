@@ -20,7 +20,7 @@ export default function Footer() {
           <li><Link href="/blog">Blog</Link></li>
           <li><a href={id.github} target="_blank" rel="noreferrer">GitHub</a></li>
           <li><a href={id.linkedin} target="_blank" rel="noreferrer">LinkedIn</a></li>
-          <li><a href={id.resume}>Resume (PDF)</a></li>
+          <li><a href={id.resume} target="_blank" rel="noreferrer">Resume</a></li>
           <li><a href="https://github.com/SoumyaRaikwar/Creative-Showcase-Site" target="_blank" rel="noreferrer">Site source</a></li>
         </ul>
       </div>

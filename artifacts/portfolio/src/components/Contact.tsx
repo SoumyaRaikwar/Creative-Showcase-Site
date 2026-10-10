@@ -55,7 +55,7 @@ export default function Contact() {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <dt className="w-20 font-mono text-[11.5px] uppercase tracking-wider text-muted">Resume</dt>
-            <dd><a href={id.resume} className="font-mono text-[15px]">resume.pdf</a></dd>
+            <dd><a href={id.resume} target="_blank" rel="noreferrer" className="font-mono text-[15px]">resume · Google Drive ↗</a></dd>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <dt className="w-20 font-mono text-[11.5px] uppercase tracking-wider text-muted">Where</dt>

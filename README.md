@@ -37,7 +37,7 @@ Every route is prerendered to static HTML at build time (`scripts/prerender.mjs`
 
 | What | Where |
 |---|---|
-| Name, hero line, links, numbers, about, narrative, skills, certs | `artifacts/portfolio/src/content/profile.json` |
+| Name, hero line, links (incl. the resume Drive link), numbers, about, narrative, skills, certs | `artifacts/portfolio/src/content/profile.json` |
 | Add a blog post | add `artifacts/portfolio/src/content/blog/<slug>.md` with frontmatter (`title`, `date`, `excerpt`, `tags`, optional `cover`, `canonical`) and add the URL to `public/sitemap.xml` |
 | Replace the hero trace | overwrite `src/content/traces/hero.json` (spans need `id`, `parent`, `service`, `op`, `start`, `duration`; `project` links a span to a narrative item by id; `critical: true` highlights it on the laptop screen) |
 | River path, laptop look, camera framing, buoy names | `src/components/world/WorldCanvas.tsx` (constants and `RIVER` at the top), `src/lib/worldStore.ts` (`SECTION_TITLES`) |
