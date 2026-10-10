@@ -1,12 +1,10 @@
 export * from "./generated/api";
 export type {
-  BlogPost,
-  BlogPostList,
+  ContributionCalendar,
+  ContributionDay,
   HealthStatus,
-  ListBlogPostsParams,
+  MergedPr,
+  MergedPrList,
   MessageSentResponse,
-  TagList,
-  CreateBlogPostBody as CreateBlogPostBodyType,
   SendMessageBody as SendMessageBodyType,
-  UpdateBlogPostBody as UpdateBlogPostBodyType,
 } from "./generated/types";

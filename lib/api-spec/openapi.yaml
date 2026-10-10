@@ -1,24 +1,22 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
+  # Do not change the title; generated import paths depend on it.
   title: Api
-  version: 0.1.0
-  description: API specification for Soumya Raikwar portfolio
+  version: 1.0.0
+  description: API for soumyaraikwar.co.in — contact form (Gmail/Resend) and cached GitHub data.
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
-  - name: blog
-    description: Blog post operations
+  - name: contact
+  - name: github
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -27,126 +25,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
 
-  /blog:
-    get:
-      operationId: listBlogPosts
-      tags: [blog]
-      summary: List all blog posts
-      parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 10
-        - name: tag
-          in: query
-          schema:
-            type: string
-      responses:
-        "200":
-          description: List of blog posts
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BlogPostList"
-    post:
-      operationId: createBlogPost
-      tags: [blog]
-      summary: Create a blog post
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateBlogPostBody"
-      responses:
-        "201":
-          description: Created blog post
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BlogPost"
-
-  /blog/{slug}:
-    get:
-      operationId: getBlogPost
-      tags: [blog]
-      summary: Get a blog post by slug
-      parameters:
-        - name: slug
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Blog post
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BlogPost"
-        "404":
-          description: Not found
-    put:
-      operationId: updateBlogPost
-      tags: [blog]
-      summary: Update a blog post
-      parameters:
-        - name: slug
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateBlogPostBody"
-      responses:
-        "200":
-          description: Updated blog post
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BlogPost"
-    delete:
-      operationId: deleteBlogPost
-      tags: [blog]
-      summary: Delete a blog post
-      parameters:
-        - name: slug
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "204":
-          description: Deleted
-
-  /blog/meta/tags:
-    get:
-      operationId: getBlogTags
-      tags: [blog]
-      summary: Get all unique tags used in blog posts
-      responses:
-        "200":
-          description: List of tags
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/TagList"
-
   /contact:
     post:
       operationId: sendMessage
       tags: [contact]
-      summary: Send a contact message
+      summary: Send a contact message (stored, then emailed via Gmail SMTP or Resend)
       requestBody:
         required: true
         content:
@@ -155,26 +38,49 @@ paths:
               $ref: "#/components/schemas/SendMessageBody"
       responses:
         "201":
-          description: Message sent
+          description: Message accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageSentResponse"
+        "400":
+          description: Invalid body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageSentResponse"
+        "429":
+          description: Too many messages from this address
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/MessageSentResponse"
 
-  /blog/meta/recent:
+  /github/prs:
     get:
-      operationId: getRecentBlogPosts
-      tags: [blog]
-      summary: Get the 3 most recent blog posts
+      operationId: listMergedPrs
+      tags: [github]
+      summary: Pull requests (merged and open) authored by the site owner in other people's repos, cached for an hour
       responses:
         "200":
-          description: Recent blog posts
+          description: PRs, newest first
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/BlogPost"
+                $ref: "#/components/schemas/MergedPrList"
+
+  /github/contributions:
+    get:
+      operationId: getContributionCalendar
+      tags: [github]
+      summary: Contribution calendar for the last year. Empty with configured=false when the server has no GITHUB_TOKEN.
+      responses:
+        "200":
+          description: Calendar
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContributionCalendar"
 
 components:
   schemas:
@@ -183,135 +89,32 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
-
-    BlogPost:
-      type: object
-      properties:
-        id:
-          type: integer
-        slug:
-          type: string
-        title:
-          type: string
-        excerpt:
-          type: string
-        content:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-        coverImage:
-          type: string
-          nullable: true
-        publishedAt:
-          type: string
-          format: date-time
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-      required:
-        - id
-        - slug
-        - title
-        - excerpt
-        - content
-        - tags
-        - publishedAt
-        - createdAt
-        - updatedAt
-
-    BlogPostList:
-      type: object
-      properties:
-        posts:
-          type: array
-          items:
-            $ref: "#/components/schemas/BlogPost"
-        total:
-          type: integer
-        page:
-          type: integer
-        limit:
-          type: integer
-        totalPages:
-          type: integer
-      required:
-        - posts
-        - total
-        - page
-        - limit
-        - totalPages
-
-    CreateBlogPostBody:
-      type: object
-      properties:
-        slug:
-          type: string
-        title:
-          type: string
-        excerpt:
-          type: string
-        content:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-        coverImage:
-          type: string
-          nullable: true
-        publishedAt:
-          type: string
-          format: date-time
-      required:
-        - slug
-        - title
-        - excerpt
-        - content
-        - tags
-
-    UpdateBlogPostBody:
-      type: object
-      properties:
-        title:
-          type: string
-        excerpt:
-          type: string
-        content:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-        coverImage:
-          type: string
-          nullable: true
-        publishedAt:
-          type: string
-          format: date-time
+      required: [status]
 
     SendMessageBody:
       type: object
       properties:
         name:
           type: string
+          minLength: 1
+          maxLength: 120
         email:
           type: string
+          format: email
+          maxLength: 200
         subject:
           type: string
+          minLength: 1
+          maxLength: 200
         body:
           type: string
-      required:
-        - name
-        - email
-        - subject
-        - body
+          minLength: 1
+          maxLength: 5000
+        website:
+          type: string
+          description: Honeypot. Must be empty; bots that fill it are silently dropped.
+          maxLength: 200
+      required: [name, email, subject, body]
 
     MessageSentResponse:
       type: object
@@ -320,16 +123,79 @@ components:
           type: boolean
         message:
           type: string
-      required:
-        - success
-        - message
+      required: [success, message]
 
-    TagList:
+    MergedPr:
       type: object
       properties:
-        tags:
+        repo:
+          type: string
+          description: owner/name
+        number:
+          type: integer
+        title:
+          type: string
+        url:
+          type: string
+        state:
+          type: string
+          enum: [merged, open]
+        createdAt:
+          type: string
+          format: date-time
+        mergedAt:
+          type: string
+          format: date-time
+          nullable: true
+        durationHours:
+          type: number
+          description: Hours between opening and merge (or until now for open PRs)
+      required: [repo, number, title, url, state, createdAt, mergedAt, durationHours]
+
+    MergedPrList:
+      type: object
+      properties:
+        prs:
           type: array
           items:
-            type: string
-      required:
-        - tags
+            $ref: "#/components/schemas/MergedPr"
+        total:
+          type: integer
+        fetchedAt:
+          type: string
+          format: date-time
+        stale:
+          type: boolean
+          description: True when GitHub was unreachable and a previous result is being served
+      required: [prs, total, fetchedAt, stale]
+
+    ContributionDay:
+      type: object
+      properties:
+        date:
+          type: string
+        count:
+          type: integer
+        level:
+          type: integer
+          description: 0–4, GitHub's own intensity bucket
+      required: [date, count, level]
+
+    ContributionCalendar:
+      type: object
+      properties:
+        configured:
+          type: boolean
+          description: False when the server has no GITHUB_TOKEN; weeks is then empty
+        total:
+          type: integer
+        weeks:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: "#/components/schemas/ContributionDay"
+        fetchedAt:
+          type: string
+          format: date-time
+      required: [configured, total, weeks, fetchedAt]
