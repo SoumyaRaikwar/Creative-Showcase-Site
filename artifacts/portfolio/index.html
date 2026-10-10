@@ -1,16 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>Soumya Raikwar — AI/ML Engineer · Agentic AI & Observability</title>
-    <meta name="description" content="Soumya Raikwar — AI/ML engineer focused on agentic AI, RAG, and AI observability. LFX Mentee with CNCF building the AI Self-Service Skills Framework for Jaeger." />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
-    <link rel="shortcut icon" href="/favicon.png" />
-    <link rel="apple-touch-icon" href="/sr-logo-256.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Soumya Raikwar — I build, evaluate and trace AI agents</title>
+    <meta name="description" content="Software engineer working on agentic AI, LLM agent evaluation and AI observability. LFX Mentee at the CNCF on Jaeger: MCP skills framework, ACP gateway, self-tracing agents. Go, Python, open source." />
+    <link rel="canonical" href="https://soumyaraikwar.co.in/" />
+    <meta name="theme-color" content="#15181d" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f3f4f0" media="(prefers-color-scheme: light)" />
+    <meta name="author" content="Soumya Raikwar" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Soumya Raikwar" />
+    <meta property="og:title" content="Soumya Raikwar — I build, evaluate and trace AI agents" />
+    <meta property="og:description" content="Agentic AI, LLM agent evaluation and AI observability. LFX Mentee at the CNCF on Jaeger. Go, Python, open source." />
+    <meta property="og:url" content="https://soumyaraikwar.co.in/" />
+    <meta property="og:image" content="https://soumyaraikwar.co.in/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Soumya Raikwar — I build, evaluate and trace AI agents" />
+    <meta name="twitter:description" content="Agentic AI, LLM agent evaluation and AI observability. LFX Mentee at the CNCF on Jaeger." />
+    <meta name="twitter:image" content="https://soumyaraikwar.co.in/og.png" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preload" href="/fonts/BricolageGrotesque-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/SchibstedGrotesk-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <script>
+      // Theme before first paint: stored choice, else OS preference.
+      (function () {
+        try {
+          var t = localStorage.getItem("theme");
+          if (t !== "light" && t !== "dark") {
+            t = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+          }
+          document.documentElement.setAttribute("data-theme", t);
+        } catch (e) {}
+        document.documentElement.classList.add("js");
+      })();
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Soumya Raikwar",
+        "url": "https://soumyaraikwar.co.in",
+        "email": "mailto:somuraik@gmail.com",
+        "jobTitle": "Software Engineer — Agentic AI, LLM Agent Evaluation, AI Observability",
+        "address": { "@type": "PostalAddress", "addressLocality": "Bhopal", "addressRegion": "Madhya Pradesh", "addressCountry": "IN" },
+        "alumniOf": { "@type": "CollegeOrUniversity", "name": "Jabalpur Engineering College" },
+        "sameAs": ["https://github.com/SoumyaRaikwar", "https://www.linkedin.com/in/soumya-raikwar-5660772a3"]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

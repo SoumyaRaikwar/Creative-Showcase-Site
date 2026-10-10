@@ -1,8 +1,26 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm exec tsc -b lib/db lib/api-zod lib/api-client-react && PORT=3000 BASE_PATH=/ pnpm --filter @workspace/portfolio run build",
+  "outputDirectory": "artifacts/portfolio/dist/public",
   "rewrites": [
     {
       "source": "/api/:path*",
       "destination": "https://creative-showcase-api.onrender.com/api/:path*"
+    },
+    {
+      "source": "/((?!assets/|fonts/|writing/|.*\\.[a-zA-Z0-9]+$).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/fonts/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
     }
   ]
 }

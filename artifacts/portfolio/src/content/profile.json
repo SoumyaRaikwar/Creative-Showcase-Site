@@ -1,0 +1,219 @@
+{
+  "identity": {
+    "name": "Soumya Raikwar",
+    "monogram": "SR",
+    "title": "Software Engineer · Agentic AI, LLM Agent Evaluation and AI Observability",
+    "hero": "I build, evaluate and trace AI agents.",
+    "heroSub": "LFX Mentee at the CNCF, working on Jaeger. I built Jaeger's MCP skills framework, made Jaeger trace its own agents, and found out why agents skip the tools you give them.",
+    "roleTags": ["Go", "Python", "CNCF open source", "MCP"],
+    "location": "Bhopal, Madhya Pradesh, India",
+    "email": "somuraik@gmail.com",
+    "github": "https://github.com/SoumyaRaikwar",
+    "githubUser": "SoumyaRaikwar",
+    "linkedin": "https://www.linkedin.com/in/soumya-raikwar-5660772a3",
+    "domain": "https://soumyaraikwar.co.in",
+    "resume": "/resume.pdf",
+    "photo": null,
+    "availability": "Open to roles in agentic AI, evals and observability from 2027. Open-source collaboration any time."
+  },
+  "numbers": [
+    { "value": "46", "label": "merged PRs", "sub": "in other people's repos, as of 10 Oct 2026", "liveKey": "mergedTotal" },
+    { "value": "28", "label": "merged in Jaeger + OpenTelemetry", "sub": "jaeger, jaeger-ui, otel-collector, otel-collector-contrib", "liveKey": "mergedCncf" },
+    { "value": "0/5 → 5/5", "label": "skill discovery", "sub": "two agent harnesses, after rewriting tool descriptions" },
+    { "value": "3", "label": "agent sidecars", "sub": "Gemini (Google ADK), Claude, Goose on one framework" }
+  ],
+  "about": {
+    "paragraphs": [
+      "I'm a final-year IT student at Jabalpur Engineering College and an LFX Mentee at the CNCF, working on Jaeger under Yuri Shkuro (Jaeger's creator) and Jonah Kowall. I built the Jaeger AI Self-Service Skills Framework: an MCP tool that lets any AI agent load expert trace-diagnosis playbooks on demand, and the plumbing that makes Jaeger trace its own agents.",
+      "I got into observability by troubleshooting a slow service while learning DevOps, and stayed because the question \"why did this agent do that?\" turns out to be the same question as \"why is this request slow?\". Outside code: swimming and writing poems."
+    ],
+    "tags": [
+      { "key": "service.name", "value": "soumya-raikwar" },
+      { "key": "location", "value": "Bhopal, MP, India" },
+      { "key": "role", "value": "LFX Mentee · CNCF / Jaeger" },
+      { "key": "mentors", "value": "Yuri Shkuro, Jonah Kowall" },
+      { "key": "languages", "value": "Go, Python" },
+      { "key": "education", "value": "B.Tech IT, JEC · Apr 2027" },
+      { "key": "outside_code", "value": "swimming, poems" }
+    ],
+    "logs": [
+      { "at": "2021", "event": "Class X, Model H.S. School" },
+      { "at": "2023", "event": "Class XII, Chitransh K.D. Memorial H.S. School. Started B.Tech IT at Jabalpur Engineering College." },
+      { "at": "2025-09", "event": "First merged PRs in CNCF projects: Harbor, then Jaeger (SigV4 auth for Prometheus and Elasticsearch backends)." },
+      { "at": "2026-02", "event": "OpenTelemetry Collector and Contrib: Prometheus remote-write scope labels, Elasticsearch receiver and exporter fixes, mdatagen schema resolution." },
+      { "at": "2026-03", "event": "Anthropic certifications: Introduction to MCP, MCP Advanced Topics. First Jaeger MCP PRs: tracing for MCP methods, inbound trace context." },
+      { "at": "2026-06", "event": "Selected as LFX Mentee at the CNCF for Jaeger's AI Self-Service Skills Framework." },
+      { "at": "2026-06 → 09", "event": "read_skill tool, ACP gateway fixes, self-tracing, agent evaluation, trace fixtures, operator skills, docs. Positive end-of-term evaluation." }
+    ]
+  },
+  "experience": {
+    "org": "Jaeger · CNCF",
+    "program": "LFX Mentorship",
+    "period": "Jun 2026 – Sep 2026",
+    "mentors": ["Yuri Shkuro (Jaeger creator)", "Jonah Kowall"],
+    "summary": "Built the Jaeger AI Self-Service Skills Framework: an MCP tool that lets AI agents load expert trace-diagnosis playbooks on demand, an agent-agnostic gateway over ACP, and the tracing that lets Jaeger observe its own agents."
+  },
+  "narrative": [
+    {
+      "id": "read-skill",
+      "title": "read_skill MCP tool",
+      "prs": [{ "repo": "jaegertracing/jaeger", "number": 8849 }],
+      "summary": "Three-level progressive disclosure: catalog → sub-skill → references. An agent loads only the playbook it needs.",
+      "detail": [
+        "Go. Handler depends only on fs.FS, secured with fs.ValidPath and os.OpenRoot.",
+        "Pure MCP, so zero sidecar changes: any MCP client gets skills for free."
+      ],
+      "span": "read_skill"
+    },
+    {
+      "id": "acp-gateway",
+      "title": "Agent-agnostic gateway over ACP",
+      "prs": [
+        { "repo": "jaegertracing/jaeger", "number": 9296 },
+        { "repo": "jaegertracing/jaeger", "number": 9395 }
+      ],
+      "summary": "Fixed WebSocket message framing so any ACP agent connects, then added authenticated agents via configurable handshake headers.",
+      "detail": [
+        "PR #9296 preserves message boundaries when reading ACP over WebSocket.",
+        "PR #9395 sends configopaque.MapList headers on the agent handshake.",
+        "Ran Gemini (Google ADK), Claude and Goose sidecars on the same gateway."
+      ],
+      "span": "acp"
+    },
+    {
+      "id": "self-tracing",
+      "title": "Self-tracing",
+      "prs": [
+        { "repo": "jaegertracing/jaeger", "number": 8942 },
+        { "repo": "jaegertracing/jaeger", "number": 9011 },
+        { "repo": "jaegertracing/jaeger", "number": 9304 }
+      ],
+      "summary": "OpenTelemetry GenAI span attributes plus W3C traceparent across ACP. Gateway and sidecar spans join into one trace per chat turn.",
+      "detail": [
+        "gen_ai.operation.name, gen_ai.agent.name, gen_ai.conversation.id on agent spans.",
+        "gen_ai.tool.call.arguments / result on both sidecar and gateway tool-call spans.",
+        "The hero of this site is drawn from the same kind of trace."
+      ],
+      "span": "agent"
+    },
+    {
+      "id": "evals",
+      "title": "Agent evaluation",
+      "prs": [],
+      "issue": { "repo": "jaegertracing/jaeger", "number": 9336 },
+      "summary": "Agents skipped skills because they judged direct telemetry tools sufficient: a reasoning problem, not a discovery problem.",
+      "detail": [
+        "Ruled out 3 routing fixes (0/5, 0/10).",
+        "0/5 → 5/5 on both harnesses by putting disconfirming signals in the telemetry tool descriptions.",
+        "Two withdrawn conclusions: 36 runs misattributed after silent agent switching; a lazy-tool-loading false negative. Both are in the issue."
+      ],
+      "span": "llm"
+    },
+    {
+      "id": "fixtures",
+      "title": "Trace fixtures and skill hardening",
+      "prs": [
+        { "repo": "jaegertracing/jaeger", "number": 9263 },
+        { "repo": "jaegertracing/jaeger", "number": 9169 },
+        { "repo": "jaegertracing/jaeger", "number": 9194 }
+      ],
+      "summary": "Labeled trace fixtures and end-to-end coverage for the built-in skills. Operator skills served from ai.skills_dir.",
+      "detail": [
+        "PR #9263: fixtures plus E2E tests so a skill regression fails CI.",
+        "PR #9169: operators add playbooks under custom/ without rebuilding Jaeger.",
+        "PR #9194: ai.enable_mcp replaced by an optional ai.mcp config block."
+      ],
+      "span": "query"
+    },
+    {
+      "id": "chat-ui",
+      "title": "Agent chat UI",
+      "prs": [
+        { "repo": "jaegertracing/jaeger-ui", "number": 4164 },
+        { "repo": "jaegertracing/jaeger-ui", "number": 4181 }
+      ],
+      "summary": "Two jaeger-ui PRs: expandable tool-call blocks in the chat thread, Markdown rendering and panel resize.",
+      "detail": [],
+      "span": "ui"
+    }
+  ],
+  "openSource": [
+    {
+      "repo": "jaegertracing/jaeger",
+      "org": "CNCF · graduated",
+      "lang": "Go",
+      "summary": "MCP skills framework, ACP gateway, GenAI tracing, SigV4 and custom-header auth for Elasticsearch/OpenSearch and Prometheus backends, OTLP fields in memory storage, schemagen for internal extensions."
+    },
+    {
+      "repo": "jaegertracing/jaeger-ui",
+      "org": "CNCF · graduated",
+      "lang": "TypeScript / React",
+      "summary": "Trace Logs view aggregating span events; tool-call rendering, Markdown and panel resize in the assistant."
+    },
+    {
+      "repo": "open-telemetry/opentelemetry-collector-contrib",
+      "org": "CNCF · graduated",
+      "lang": "Go",
+      "summary": "Prometheus remote-write exporter: disable_scope_info and scope-label translation; instrumentation scope attributes as labels; Elasticsearch receiver IPv6 endpoints; Elasticsearch exporter require_data_stream."
+    },
+    {
+      "repo": "open-telemetry/opentelemetry-collector",
+      "org": "CNCF · graduated",
+      "lang": "Go",
+      "summary": "mdatagen: preserve custom extensions during schema reference resolution."
+    },
+    {
+      "repo": "goharbor/harbor",
+      "org": "CNCF · graduated",
+      "lang": "Go",
+      "summary": "Build cleanup: removed unused registry build paths."
+    },
+    {
+      "repo": "Acumius/Acumius",
+      "org": "open source",
+      "lang": "Go",
+      "summary": "Memory engine, trust and policy layers, API integration, governance UI scaffold, ADRs, CI and DCO enforcement."
+    }
+  ],
+  "projects": [
+    {
+      "name": "CodeSight AI",
+      "tagline": "Agentic RAG over any public GitHub repo",
+      "summary": "Ask plain-English questions about an unfamiliar codebase. A LangGraph agent clones and ingests the repo, chunks it with language- and symbol-aware splitting, and retrieves with ChromaDB and sentence-transformer embeddings.",
+      "detail": [
+        "MCP adapter tool with graceful fallback when the external server is down.",
+        "Generates Mermaid architecture and sequence diagrams.",
+        "FastAPI backend, Next.js frontend, Docker Compose, pytest suites over ingestion, chunking and retrieval."
+      ],
+      "stack": ["Python", "FastAPI", "LangGraph", "ChromaDB", "MCP", "Next.js", "Docker"],
+      "github": "https://github.com/SoumyaRaikwar/CodeSight_AI"
+    }
+  ],
+  "skills": [
+    { "group": "Languages", "items": ["Go", "Python"] },
+    { "group": "Agentic AI", "items": ["MCP", "ACP", "LangGraph", "LangChain", "CrewAI", "Google ADK", "multi-agent orchestration", "tool design", "skills frameworks", "agent sidecars"] },
+    { "group": "Evals", "items": ["harness design", "multi-agent / multi-model comparison", "negative controls", "graded rubrics", "fixtures", "tool-description and prompt optimisation", "failure analysis"] },
+    { "group": "LLMs / RAG", "items": ["RAG", "embeddings", "ChromaDB", "semantic search", "prompt engineering"] },
+    { "group": "Observability", "items": ["Jaeger", "OpenTelemetry", "GenAI semantic conventions", "distributed tracing", "W3C Trace Context"] },
+    { "group": "Backend / tools", "items": ["FastAPI", "REST", "WebSocket", "ClickHouse", "Docker", "Kubernetes", "Git", "Linux", "pytest"] }
+  ],
+  "education": [
+    { "school": "Jabalpur Engineering College", "degree": "B.Tech, Information Technology", "when": "expected Apr 2027" }
+  ],
+  "certifications": [
+    { "name": "Introduction to MCP", "org": "Anthropic", "when": "Mar 2026", "url": "https://verify.skilljar.com/c/5okmhiui26xw" },
+    { "name": "MCP Advanced Topics", "org": "Anthropic", "when": "Mar 2026", "url": "https://verify.skilljar.com/c/iw8e9oxp4xfh" }
+  ],
+  "writing": [
+    {
+      "title": "Teaching AI to Read the Manual",
+      "subtitle": "Building an AI Skills framework for Jaeger — CNCF LFX Mentorship",
+      "linkedinTitle": "My LFX Mentorship on Jaeger",
+      "url": "https://lnkd.in/p/dDR-srUT",
+      "year": "2026",
+      "cover": "/writing/teaching-ai-to-read-the-manual.webp",
+      "coverPng": "/writing/teaching-ai-to-read-the-manual.png",
+      "slug": "teaching-ai-to-read-the-manual"
+    }
+  ]
+}

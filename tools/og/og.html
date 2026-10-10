@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: "Bricolage Grotesque"; src: url("../../artifacts/portfolio/public/fonts/BricolageGrotesque-latin.woff2") format("woff2"); font-weight: 200 800; }
+  @font-face { font-family: "Schibsted Grotesk"; src: url("../../artifacts/portfolio/public/fonts/SchibstedGrotesk-latin.woff2") format("woff2"); font-weight: 400 900; }
+  @font-face { font-family: "Commit Mono"; src: url("../../artifacts/portfolio/public/fonts/CommitMono-400-latin.woff2") format("woff2"); }
+  html, body { margin: 0; }
+  body { width: 1200px; height: 630px; background: #15181d; color: #e4e6ea; font-family: "Schibsted Grotesk", sans-serif; position: relative; overflow: hidden; }
+  .pad { position: absolute; inset: 0; padding: 64px 72px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; }
+  .eyebrow { font-family: "Commit Mono", monospace; font-size: 18px; letter-spacing: .12em; text-transform: uppercase; color: #9aa2ad; display: flex; align-items: center; gap: 14px; }
+  .eyebrow::before { content: ""; width: 28px; height: 3px; background: #dd9a5b; }
+  h1 { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 74px; line-height: 1.02; letter-spacing: -0.02em; margin: 0; max-width: 760px; }
+  .sub { font-size: 26px; color: #9aa2ad; margin-top: 22px; max-width: 700px; line-height: 1.35; }
+  .foot { display: flex; justify-content: space-between; align-items: flex-end; font-family: "Commit Mono", monospace; font-size: 18px; color: #9aa2ad; }
+  .name { font-size: 22px; color: #e4e6ea; font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; }
+  .trace { position: absolute; right: 72px; top: 150px; width: 300px; }
+  .trace div { height: 14px; border-radius: 2px; margin-bottom: 9px; }
+</style>
+</head>
+<body>
+  <div class="trace">
+    <div style="width:100%;background:#8fa3bd;opacity:.8"></div>
+    <div style="width:94%;margin-left:3%;background:#dd9a5b"></div>
+    <div style="width:88%;margin-left:6%;background:#78b4c6"></div>
+    <div style="width:24%;margin-left:8%;background:#78b4c6;opacity:.7"></div>
+    <div style="width:9%;margin-left:33%;background:#a8b39a"></div>
+    <div style="width:6%;margin-left:34%;background:#c9a36a;opacity:.7"></div>
+    <div style="width:20%;margin-left:40%;background:#78b4c6;opacity:.7"></div>
+    <div style="width:16%;margin-left:62%;background:#8fa3bd"></div>
+    <div style="width:12%;margin-left:64%;background:#b9927a;opacity:.7"></div>
+    <div style="width:18%;margin-left:80%;background:#78b4c6;opacity:.7"></div>
+  </div>
+  <div class="pad">
+    <div>
+      <p class="eyebrow">LFX Mentee · CNCF / Jaeger</p>
+      <h1 style="margin-top:28px">I build, evaluate and trace AI agents.</h1>
+      <p class="sub">Agentic AI · LLM agent evaluation · AI observability. Go, Python, open source.</p>
+    </div>
+    <div class="foot">
+      <span class="name">Soumya Raikwar</span>
+      <span>soumyaraikwar.co.in</span>
+    </div>
+  </div>
+</body>
+</html>
