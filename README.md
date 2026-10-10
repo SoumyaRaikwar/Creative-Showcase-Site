@@ -14,7 +14,7 @@ artifacts/portfolio          Vite + React 19 + TypeScript + Tailwind 4 (the site
   src/content/blog/*.md      blog posts (Markdown + frontmatter, built into the bundle)
   src/content/traces/hero.json  the trace the 3D hero renders
   src/content/prs-snapshot.json offline fallback for the PR list
-  src/components/three/      TracePoster (SVG), Hero (scroll stage + HUD), LaptopCanvas (three.js)
+  src/components/three/      TracePoster (SVG), Hero + LaptopCanvas (scroll-opening laptop), ServiceGraph + GraphCanvas (3D DAG)
   public/fonts               self-hosted Bricolage Grotesque, Schibsted Grotesk, Commit Mono
 artifacts/api-server         Express 5 API: /api/contact, /api/github/prs, /api/github/contributions
 lib/api-spec/openapi.yaml    API contract; `pnpm codegen` regenerates the two packages below
@@ -29,6 +29,8 @@ tools/og                     HTML templates + script that renders og.png and the
 Palette C "Graphite Copper" from the research doc, dark primary with a paper light theme. Copper is the wire carrying telemetry, steel cyan is the signal. Type: Bricolage Grotesque (display), Schibsted Grotesk (body), Commit Mono (identifiers and numbers). Depth comes from 1px borders. Everything respects `prefers-reduced-motion`.
 
 The hero is a procedural 3D laptop (no downloaded model, ~4 kB of code on top of three.js) that lifts and opens as you scroll, then the camera flies into its screen. The screen is a canvas texture showing the trace of one Jaeger AI chat turn (`src/content/traces/hero.json`), rows coloured by hashing the service name the way Jaeger does; hover a row for its span, click to jump to the work it stands for. The same trace is rendered as an inline SVG first, so the page is readable before WebGL loads, and that SVG stays for reduced-motion, no-WebGL and data-saver visitors. WebGL loads only after the first scroll/pointer/key or 3.5 s after load, renders on demand, pauses off screen, and drops DPR on slow devices.
+
+Below About, a second three.js piece (`ServiceGraph` + `GraphCanvas`) shows Jaeger's other view of the same turn: the service dependency graph, with pulses flowing along each call. It auto-rotates, can be dragged, and each node links to the related work. Its loop runs only while the section is on screen.
 
 Every route is prerendered to static HTML at build time (`scripts/prerender.mjs`, after a Vite SSR build) and hydrated on the client, so text paints before any JavaScript runs.
 

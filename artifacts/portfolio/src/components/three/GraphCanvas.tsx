@@ -201,8 +201,8 @@ export default function GraphCanvas(props: Props) {
       camera.updateProjectionMatrix();
       // Fit a sphere of radius 2.2 (+ node size + labels) whatever the rotation
       const halfTan = Math.tan((FOV / 2) * (Math.PI / 180));
-      const R = 2.2 + 0.5;
-      const dist = (R / (halfTan * Math.min(camera.aspect, 1))) * 1.08;
+      const R = 2.2 + 0.9;
+      const dist = (R / (halfTan * Math.min(camera.aspect, 1))) * 1.1;
       camera.position.set(0, 0.3, dist);
       camera.lookAt(0, 0, 0);
     };

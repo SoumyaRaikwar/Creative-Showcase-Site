@@ -119,7 +119,7 @@ export default function ServiceGraph() {
               ))}
             </ul>
           )}
-          <p className="pointer-events-none absolute bottom-3 left-3 font-mono text-[11px] text-faint">
+          <p className="pointer-events-none absolute left-3 top-3 font-mono text-[11px] text-faint">
             {show3d && ready ? "drag · click a node" : reduced ? "motion reduced · static list" : "loading…"}
           </p>
         </div>
