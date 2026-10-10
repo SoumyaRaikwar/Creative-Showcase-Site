@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import Hero from "@/components/three/Hero";
-import ServiceGraph from "@/components/three/ServiceGraph";
+import World from "@/components/world/World";
 import Contact from "@/components/Contact";
 import PrRows from "@/components/github/PrRows";
 import { usePrs } from "@/components/github/usePrs";
@@ -19,7 +19,7 @@ function Numbers() {
     mergedCncf: String(prs.mergedJaegerOtel),
   };
   return (
-    <section aria-label="Headline numbers" className="border-y border-line">
+    <section id="numbers" aria-label="Headline numbers" className="world-section relative z-10 border-y border-line" style={{ background: "color-mix(in srgb, var(--ground) 84%, transparent)" }}>
       <div className="wrap grid grid-cols-2 md:grid-cols-4">
         {profile.numbers.map((n, i) => (
           <div key={n.label} className={`reveal py-7 md:py-8 ${i > 0 ? "md:border-l md:border-line md:pl-6" : ""} ${i % 2 === 1 ? "border-l border-line pl-5 md:pl-6" : ""}`}>
@@ -295,6 +295,7 @@ export default function Home() {
   useReveal();
   return (
     <>
+      <World />
       <Hero />
       <Numbers />
       <Narrative />
@@ -302,7 +303,6 @@ export default function Home() {
       <Project />
       <Skills />
       <About />
-      <ServiceGraph />
       <WritingTeasers />
       <Contact />
     </>

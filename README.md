@@ -14,7 +14,8 @@ artifacts/portfolio          Vite + React 19 + TypeScript + Tailwind 4 (the site
   src/content/blog/*.md      blog posts (Markdown + frontmatter, built into the bundle)
   src/content/traces/hero.json  the trace the 3D hero renders
   src/content/prs-snapshot.json offline fallback for the PR list
-  src/components/three/      TracePoster (SVG), Hero + LaptopCanvas (scroll-opening laptop), ServiceGraph + GraphCanvas (3D DAG)
+  src/components/three/      TracePoster (SVG) and the Hero stage (text, HUD)
+  src/components/world/      World (scroll → store, tooltips, buoy labels) and WorldCanvas (the three.js river scene)
   public/fonts               self-hosted Bricolage Grotesque, Schibsted Grotesk, Commit Mono
 artifacts/api-server         Express 5 API: /api/contact, /api/github/prs, /api/github/contributions
 lib/api-spec/openapi.yaml    API contract; `pnpm codegen` regenerates the two packages below
@@ -28,9 +29,7 @@ tools/og                     HTML templates + script that renders og.png and the
 
 Palette C "Graphite Copper" from the research doc, dark primary with a paper light theme. Copper is the wire carrying telemetry, steel cyan is the signal. Type: Bricolage Grotesque (display), Schibsted Grotesk (body), Commit Mono (identifiers and numbers). Depth comes from 1px borders. Everything respects `prefers-reduced-motion`.
 
-The hero is a procedural 3D laptop (no downloaded model, ~4 kB of code on top of three.js) that lifts and opens as you scroll, then the camera flies into its screen. The screen is a canvas texture showing the trace of one Jaeger AI chat turn (`src/content/traces/hero.json`), rows coloured by hashing the service name the way Jaeger does; hover a row for its span, click to jump to the work it stands for. The same trace is rendered as an inline SVG first, so the page is readable before WebGL loads, and that SVG stays for reduced-motion, no-WebGL and data-saver visitors. WebGL loads only after the first scroll/pointer/key or 3.5 s after load, renders on demand, pauses off screen, and drops DPR on slow devices.
-
-Below About, a second three.js piece (`ServiceGraph` + `GraphCanvas`) shows Jaeger's other view of the same turn: the service dependency graph, with pulses flowing along each call. It auto-rotates, can be dragged, and each node links to the related work. Its loop runs only while the section is on screen.
+The home page is one continuous three.js world (`src/components/world/`) fixed behind the HTML. A procedural laptop sits on a riverbank; it opens as you scroll and the camera flies into its screen, which shows the trace of one Jaeger AI chat turn (`src/content/traces/hero.json`, rows coloured by hashing the service name the way Jaeger does; hover a row for its span, click to jump to the work it stands for). Past the hero a paper boat casts off and drifts downstream; the camera follows it, and every page section is a copper buoy on the river (hover for its name, click to go there). The river opens into a lake for the contact section. The same trace is rendered as an inline SVG first, so the page is readable before WebGL loads, and that SVG stays for reduced-motion, no-WebGL and data-saver visitors. WebGL loads only after the first scroll/pointer/key or 3.5 s after load, stops when the tab is hidden, and drops DPR on slow devices.
 
 Every route is prerendered to static HTML at build time (`scripts/prerender.mjs`, after a Vite SSR build) and hydrated on the client, so text paints before any JavaScript runs.
 
@@ -41,7 +40,7 @@ Every route is prerendered to static HTML at build time (`scripts/prerender.mjs`
 | Name, hero line, links, numbers, about, narrative, skills, certs | `artifacts/portfolio/src/content/profile.json` |
 | Add a blog post | add `artifacts/portfolio/src/content/blog/<slug>.md` with frontmatter (`title`, `date`, `excerpt`, `tags`, optional `cover`, `canonical`) and add the URL to `public/sitemap.xml` |
 | Replace the hero trace | overwrite `src/content/traces/hero.json` (spans need `id`, `parent`, `service`, `op`, `start`, `duration`; `project` links a span to a narrative item by id; `critical: true` highlights it on the laptop screen) |
-| Laptop look (colours, open angle, camera beats) | `src/components/three/LaptopCanvas.tsx`, constants at the top |
+| River path, laptop look, camera framing, buoy names | `src/components/world/WorldCanvas.tsx` (constants and `RIVER` at the top), `src/lib/worldStore.ts` (`SECTION_TITLES`) |
 | Refresh the offline PR snapshot | run the one-liner in "Scripts" below |
 | Change a colour or font | `src/styles/tokens.css` |
 | Photo | drop it in `public/` and replace the placeholder panel in `src/pages/Home.tsx` (`About`) |

@@ -39,11 +39,16 @@ for (const route of routes) {
   // a pass has started loading them; render until two passes agree.
   let html = "";
   let stable = 0;
-  for (let i = 0; i < 8 && stable < 2; i++) {
+  for (let i = 0; i < 14 && stable < 2; i++) {
     const out = render(route);
     stable = out === html ? stable + 1 : 0;
     html = out;
-    await new Promise((r) => setTimeout(r, 150));
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  // The lazy Markdown renderer may need one more tick on a cold start.
+  if (/aria-busy="true"|animate-pulse/.test(html)) {
+    await new Promise((r) => setTimeout(r, 800));
+    html = render(route);
   }
   if (/aria-busy="true"|animate-pulse/.test(html)) console.warn(`warning: ${route} still shows a loading state`);
   const page = setHead(template, seoFor(route)).replace('<div id="root"></div>', `<div id="root" data-route="${esc(route)}">${html}</div>`);

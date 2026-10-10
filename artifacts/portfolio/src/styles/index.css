@@ -141,6 +141,34 @@
     html.js .reveal { opacity: 1; transform: none; }
     html.js .reveal.is-in { transition: none; }
   }
+  /* Sections float over the fixed 3D world. Empty space lets the pointer reach
+     the scene; real content stays interactive. */
+  .world-section { pointer-events: none; }
+  .world-section a,
+  .world-section button,
+  .world-section input,
+  .world-section textarea,
+  .world-section label,
+  .world-section select,
+  .world-section .panel,
+  .world-section .interactive { pointer-events: auto; }
+  .world-section .panel,
+  .world-section .eyebrow,
+  .world-section h1,
+  .world-section h2,
+  .world-section h3,
+  .world-section p,
+  .world-section dl,
+  .world-section ol,
+  .world-section ul { position: relative; }
+  .world-section .text-backing {
+    background: color-mix(in srgb, var(--ground) 72%, transparent);
+    box-shadow: 0 0 0 12px color-mix(in srgb, var(--ground) 72%, transparent);
+    border-radius: 2px;
+  }
+  @media (max-width: 767px) {
+    .world-section .wrap > * { background: color-mix(in srgb, var(--ground) 55%, transparent); }
+  }
   .grid-lines {
     background-image: linear-gradient(var(--line) 1px, transparent 1px);
     background-size: 100% 44px;
