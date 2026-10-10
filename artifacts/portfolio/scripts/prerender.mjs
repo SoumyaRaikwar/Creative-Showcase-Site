@@ -6,7 +6,13 @@ import { fileURLToPath } from "node:url";
 
 const dist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../dist");
 const publicDir = path.join(dist, "public");
-const template = readFileSync(path.join(publicDir, "index.html"), "utf8");
+let template = readFileSync(path.join(publicDir, "index.html"), "utf8");
+
+// Inline the (small) stylesheet so the first paint needs no extra request.
+template = template.replace(/<link rel="stylesheet" crossorigin href="(\/assets\/[^"]+\.css)">/, (_m, href) => {
+  const css = readFileSync(path.join(publicDir, href), "utf8");
+  return `<style>${css}</style>`;
+});
 const { render, routes, seoFor } = await import(path.join(dist, "server/entry-server.js"));
 
 const SITE = "https://soumyaraikwar.co.in";

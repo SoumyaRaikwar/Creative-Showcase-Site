@@ -1,7 +1,7 @@
 export function formatDate(iso: string, opts: Intl.DateTimeFormatOptions = { year: "numeric", month: "short", day: "numeric" }): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("en-GB", opts);
+  return d.toLocaleDateString("en-US", opts);
 }
 
 export function formatHours(hours: number): string {

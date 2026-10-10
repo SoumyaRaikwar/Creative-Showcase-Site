@@ -23,7 +23,7 @@ export default function PrRows({ prs, compact = false }: { prs: MergedPr[]; comp
             href={p.url}
             target="_blank"
             rel="noreferrer"
-            className="group grid gap-x-5 gap-y-1.5 py-3 md:grid-cols-[150px_minmax(0,1fr)_220px] md:items-center"
+            className="group grid gap-x-5 gap-y-1.5 py-3 md:grid-cols-[150px_minmax(0,1fr)_240px] md:items-center"
           >
             <span className="flex items-center gap-2 font-mono text-[12px] text-muted">
               <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-[1px]" style={{ background: serviceColorVar(p.repo) }} />
@@ -45,7 +45,7 @@ export default function PrRows({ prs, compact = false }: { prs: MergedPr[]; comp
                   }}
                 />
               </span>
-              <span className="w-[92px] shrink-0 text-right font-mono text-[11.5px] text-muted tnum">
+              <span className="w-[112px] shrink-0 whitespace-nowrap text-right font-mono text-[11.5px] text-muted tnum">
                 {p.state === "merged" ? (
                   <>
                     <span className="text-text">{formatHours(p.durationHours)}</span> · {formatDate(p.mergedAt ?? p.createdAt, { month: "short", year: "2-digit" })}

@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import Hero from "@/components/three/Hero";
+import ServiceGraph from "@/components/three/ServiceGraph";
 import Contact from "@/components/Contact";
 import PrRows from "@/components/github/PrRows";
 import { usePrs } from "@/components/github/usePrs";
@@ -301,6 +302,7 @@ export default function Home() {
       <Project />
       <Skills />
       <About />
+      <ServiceGraph />
       <WritingTeasers />
       <Contact />
     </>
